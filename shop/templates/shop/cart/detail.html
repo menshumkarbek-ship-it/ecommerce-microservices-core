@@ -58,10 +58,13 @@
                                 <div class="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800">
                                     <span class="text-base font-black text-white">${{ item.total_price }}</span>
 
-                                    <a href="{% url 'shop:cart_remove' product.id %}" class="px-3 py-2 bg-rose-950/50 hover:bg-rose-900/60 text-rose-400 border border-rose-800/60 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
-                                        <i class="fa-solid fa-trash-can text-xs"></i>
-                                        <span>{% translate "Remove" %}</span>
-                                    </a>
+                                    <form action="{% url 'shop:cart_remove' product.id %}" method="POST">
+                                        {% csrf_token %}
+                                        <button type="submit" class="px-3 py-2 bg-rose-950/50 hover:bg-rose-900/60 text-rose-400 border border-rose-800/60 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                                            <i class="fa-solid fa-trash-can text-xs"></i>
+                                            <span>{% translate "Remove" %}</span>
+                                        </button>
+                                    </form>
                                 </div>
 
                             </div>

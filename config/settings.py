@@ -9,13 +9,13 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Security Settings loaded from .env
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-local-development-key')
 
 # Convert DEBUG string from .env to boolean (default to False if not set)
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = os.getenv('DEBUG', 'False').strip().lower() == 'true'
 
 # Parse comma-separated string from .env into a list
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
+ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', '').split(',') if host.strip()]
 
 INSTALLED_APPS = [
     'jazzmin',
@@ -54,6 +54,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.i18n',  # 🌐 Language context
+                'shop.context_processors.user_profile',
             ],
         },
     },
@@ -118,6 +119,7 @@ USE_TZ = True
 # ==========================================
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Base url to serve media files
 MEDIA_URL = '/media/'
@@ -146,8 +148,8 @@ SPECTACULAR_SETTINGS = {
 # 🏎️ LOCAL RECONFIGURED CACHING INFRASTRUCTURE (For running without Docker)
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
-        'LOCATION': 'techvault_cache_table',
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'techvault-catalog',
     }
 }
 
@@ -155,8 +157,9 @@ CACHES = {
 # ⚡ CELERY & REDIS TASK QUEUE SETTINGS
 # ==========================================
 
-CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
-CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
+REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', REDIS_URL)
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', REDIS_URL)
 
 # Force Redis driver to use RESP2 protocol to prevent HELLO command errors
 CELERY_BROKER_TRANSPORT_OPTIONS = {'protocol_version': 2}

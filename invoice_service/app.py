@@ -117,4 +117,4 @@ def generate_invoice():
 
 if __name__ == '__main__':
     # Run Flask on Port 8002
-    app.run(port=8002, debug=True)
+    app.run(port=8002, debug=os.getenv('DEBUG', 'False').lower() == 'true')

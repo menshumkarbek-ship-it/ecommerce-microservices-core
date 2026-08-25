@@ -34,6 +34,7 @@ urlpatterns = [
 
     # --- Customer Authentication & Settings ---
     path('accounts/register/', views.register_customer, name='register'),
+    path('accounts/verify-otp/', views.verify_otp, name='verify_otp'),  # 👈 Added OTP verification route
     path('accounts/login/', views.login_customer, name='login'),
     path('accounts/logout/', views.logout_customer, name='logout'),
     path('profile/settings/', views.account_settings, name='account_settings'),

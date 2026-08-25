@@ -14,14 +14,14 @@ app = FastAPI(
 # Enable CORS so your Django frontend can talk to your FastAPI backend if needed
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=[origin for origin in os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:8000').split(',') if origin],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # 2. Configure the Async PostgreSQL Database Connection
-DATABASE_URL = "postgresql://postgres:20041807@localhost:5432/mobile_shop_db"
+DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/mobile_shop_db')
 database = Database(DATABASE_URL)
 
 @app.on_event("startup")

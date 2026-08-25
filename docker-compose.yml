@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # 💾 PostgreSQL Relational Database Service
   db:
@@ -34,6 +32,7 @@ services:
       - "8000:8000"
     environment:
       - DB_HOST=db
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/mobile_shop_db
       - DB_NAME=mobile_shop_db
       - DB_USER=postgres
       - DB_PASSWORD=postgres
@@ -60,12 +59,11 @@ services:
 
   # 🚀 FastAPI Stock Engine Microservice (Port 8001)
   fastapi_service:
-    build:
-      context: .
-      dockerfile: Dockerfile.fastapi
+    build: .
     container_name: techvault_fastapi_service
     ports:
       - "8001:8001"
+    command: uvicorn fastapi_service.main:app --host 0.0.0.0 --port 8001
     environment:
       - DB_HOST=db
     depends_on:
@@ -73,12 +71,11 @@ services:
 
   # 📄 Flask PDF Invoice Microservice (Port 8002)
   flask_service:
-    build:
-      context: .
-      dockerfile: Dockerfile.flask
+    build: .
     container_name: techvault_flask_service
     ports:
       - "8002:8002"
+    command: python invoice_service/app.py
     environment:
       - DB_HOST=db
     depends_on:

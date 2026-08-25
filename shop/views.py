@@ -1,5 +1,5 @@
 import os
-import random
+import secrets
 import requests
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -12,6 +12,7 @@ from django.core.cache import cache
 from django.core.mail import send_mail
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
+from django.db import transaction
 
 from .models import Product, Category, Order, OrderItem, UserProfile
 from .forms import UserSettingsForm, ProductCreateForm, CustomerRegistrationForm
@@ -185,7 +186,7 @@ def register_customer(request):
             user.save()
 
             method = form.cleaned_data['verification_method']
-            otp_code = str(random.randint(100000, 999999))
+            otp_code = f'{secrets.randbelow(900000) + 100000:06d}'
 
             profile = UserProfile.objects.create(
                 user=user,
@@ -207,13 +208,12 @@ def register_customer(request):
             else:
                 profile.phone_otp = otp_code
                 profile.save()
-                # SMS integration placeholder
 
             login(request, user)
             messages.info(request, f"Please verify your code sent via {method}.")
             return redirect('shop:verify_otp')
         else:
-            messages.error(request, "Please correct the registration errors below.")
+            messages.error(request, "Please correct the highlighted errors below.")
     else:
         form = CustomerRegistrationForm()
 
@@ -222,7 +222,14 @@ def register_customer(request):
 
 @login_required
 def verify_otp(request):
-    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    try:
+        profile = request.user.profile
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'Your account profile is incomplete. Please contact support.')
+        return redirect('shop:home')
+
+    if profile.kyc_status == 'verified':
+        return redirect('shop:home')
 
     if request.method == 'POST':
         entered_code = request.POST.get('otp_code', '').strip()
@@ -230,12 +237,14 @@ def verify_otp(request):
         if profile.verification_method == 'email' and entered_code == profile.email_otp:
             profile.is_email_verified = True
             profile.kyc_status = 'verified'
+            profile.email_otp = None
             profile.save()
             messages.success(request, "Email verified successfully! Account fully activated.")
             return redirect('shop:home')
         elif profile.verification_method == 'phone' and entered_code == profile.phone_otp:
             profile.is_phone_verified = True
             profile.kyc_status = 'verified'
+            profile.phone_otp = None
             profile.save()
             messages.success(request, "Phone verified successfully! Account fully activated.")
             return redirect('shop:home')
@@ -285,6 +294,7 @@ def cart_add(request, product_id):
     return redirect('shop:cart_detail')
 
 
+@require_POST
 def cart_remove(request, product_id):
     cart = Cart(request)
     product = get_object_or_404(Product, id=product_id)
@@ -303,7 +313,11 @@ def cart_detail(request):
 
 @login_required
 def account_settings(request):
-    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    try:
+        profile = request.user.profile
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'Your account profile is incomplete. Please contact support.')
+        return redirect('shop:home')
 
     if request.method == 'POST':
         form = UserSettingsForm(request.POST, request.FILES, instance=request.user, profile_instance=profile)
@@ -346,33 +360,46 @@ def payment_method_settings(request):
 # ==========================================
 
 @login_required
+@require_POST
 def checkout_order(request):
-    cart_session = request.session.get('techvault_cart', {})
-    if not cart_session:
+    cart = Cart(request)
+    cart_items = list(cart)
+    if not cart_items:
         messages.error(request, "Your cart is empty.")
         return redirect('shop:product_list')
 
-    product_id = list(cart_session.keys())[0]
     try:
-        product = Product.objects.get(id=product_id, is_sold=False)
-    except Product.DoesNotExist:
-        messages.error(request, "This item is no longer available.")
-        return redirect('shop:cart_detail')
+        profile = request.user.profile
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'Complete your account profile before checkout.')
+        return redirect('shop:account_settings')
+    if profile.kyc_status != 'verified':
+        messages.error(request, 'Verify your account before checkout.')
+        return redirect('shop:verify_otp')
 
-    order = Order.objects.create(user=request.user, total_price=product.price)
-    OrderItem.objects.create(order=order, product=product, price=product.price, quantity=1)
+    product_ids = [item['product'].id for item in cart_items]
+    with transaction.atomic():
+        products = list(Product.objects.select_for_update().filter(id__in=product_ids, is_sold=False))
+        if len(products) != len(product_ids):
+            messages.error(request, 'One or more cart items are no longer available.')
+            return redirect('shop:cart_detail')
 
-    product.is_sold = True
-    product.save()
-
-    request.session['techvault_cart'] = {}
+        products_by_id = {product.id: product for product in products}
+        total_price = sum((products_by_id[item['product'].id].price for item in cart_items), start=0)
+        order = Order.objects.create(user=request.user, total_price=total_price)
+        OrderItem.objects.bulk_create([
+            OrderItem(order=order, product=products_by_id[item['product'].id], price=products_by_id[item['product'].id].price, quantity=1)
+            for item in cart_items
+        ])
+        Product.objects.filter(id__in=product_ids).update(is_sold=True)
+        cart.clear()
 
     flask_endpoint = f"{FLASK_PDF_SERVICE_URL}/api/v1/generate-invoice"
     payload = {
         "order_id": str(order.id),
         "customer_name": f"{request.user.first_name} {request.user.last_name}" if request.user.first_name else request.user.username,
-        "product_name": f"{product.brand} {product.name}",
-        "price": str(product.price)
+        "product_name": ', '.join(f"{product.brand} {product.name}" for product in products),
+        "price": str(total_price)
     }
 
     try:
