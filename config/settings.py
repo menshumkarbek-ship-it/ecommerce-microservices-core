@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import gettext_lazy as _  # 🌐 Translation Engine
 from dotenv import load_dotenv
 
@@ -8,11 +9,16 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Security Settings loaded from .env
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-local-development-key')
-
 # Convert DEBUG string from .env to boolean (default to False if not set)
 DEBUG = os.getenv('DEBUG', 'False').strip().lower() == 'true'
+
+# Require an explicit secret outside local development.
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = 'django-insecure-local-development-key'
+    else:
+        raise ImproperlyConfigured('SECRET_KEY must be set when DEBUG=False.')
 
 # Parse comma-separated string from .env into a list
 ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', '').split(',') if host.strip()]
