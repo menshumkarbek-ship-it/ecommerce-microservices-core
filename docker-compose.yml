@@ -52,6 +52,16 @@ services:
       - .:/app
     environment:
       - DB_HOST=db
+      - DB_NAME=mobile_shop_db
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=mobile_shop_db
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/mobile_shop_db
+      - DB_NAME=mobile_shop_db
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
       - REDIS_URL=redis://redis:6379/0
     depends_on:
       - web

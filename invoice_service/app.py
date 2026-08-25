@@ -1,4 +1,5 @@
 import os
+import re
 from flask import Flask, request, jsonify
 from fpdf import FPDF
 from flasgger import Swagger  # 1. Import Flasgger
@@ -104,7 +105,8 @@ def generate_invoice():
     pdf.cell(0, 10, "Thank you for shopping at TechVault!", 0, 1, 'C')
 
     # Save the file locally
-    pdf_filename = f"invoice_order_{order_id}.pdf"
+    safe_order_id = re.sub(r"[^A-Za-z0-9_-]", "_", str(order_id))[:80] or "0000"
+    pdf_filename = f"invoice_order_{safe_order_id}.pdf"
     pdf_path = os.path.join(INVOICE_DIR, pdf_filename)
     pdf.output(pdf_path)
 

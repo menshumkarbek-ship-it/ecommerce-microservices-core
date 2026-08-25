@@ -283,8 +283,7 @@ class ProductCreateForm(forms.ModelForm):
         if processor:
             specs['Processor'] = processor
 
-        if specs:
-            product.specifications = specs
+        product.specifications = specs
 
         if commit:
             product.save()

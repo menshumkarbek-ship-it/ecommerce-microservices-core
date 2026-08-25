@@ -1,0 +1,3 @@
+shop/templates/** linguist-vendored
+shop/static/** linguist-vendored
+locale/** linguist-vendored
