@@ -35,31 +35,11 @@ class CustomerRegistrationForm(forms.ModelForm):
             'placeholder': 'Password (Min. 8 characters)'
         })
     )
-    passport_number = forms.CharField(
-        max_length=9,
-        widget=forms.TextInput(attrs={
-            'class': 'w-full bg-slate-800/80 border border-slate-700/80 rounded-2xl px-4 py-3 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50',
-            'placeholder': 'ID1234567 or AN1234567'
-        })
-    )
-    verification_method = forms.ChoiceField(
-        choices=UserProfile.VERIFICATION_METHOD_CHOICES,
-        widget=forms.Select(attrs={
-            'class': 'w-full bg-slate-800/80 border border-slate-700/80 rounded-2xl px-4 py-3 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer'
-        })
-    )
     email = forms.EmailField(
-        required=False,
+        required=True,
         widget=forms.EmailInput(attrs={
             'class': 'w-full bg-slate-800/80 border border-slate-700/80 rounded-2xl px-4 py-3 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50',
             'placeholder': 'name@example.com'
-        })
-    )
-    phone_number = forms.CharField(
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'w-full bg-slate-800/80 border border-slate-700/80 rounded-2xl px-4 py-3 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50',
-            'placeholder': '+996XXXXXXXXX'
         })
     )
 
@@ -73,29 +53,6 @@ class CustomerRegistrationForm(forms.ModelForm):
             validate_password(password)
         return password
 
-    def clean_passport_number(self):
-        passport = self.cleaned_data.get('passport_number', '').upper()
-        if not re.match(r'^(ID|AN)\d{7}$', passport):
-            raise forms.ValidationError("Invalid Kyrgyz passport format. Must be ID or AN followed by 7 digits.")
-        if UserProfile.objects.filter(passport_number=passport).exists():
-            raise forms.ValidationError("This passport number is already registered.")
-        return passport
-
-    def clean(self):
-        cleaned_data = super().clean()
-        method = cleaned_data.get('verification_method')
-        email = cleaned_data.get('email')
-        phone = cleaned_data.get('phone_number')
-
-        if method == 'email' and not email:
-            self.add_error('email', 'Email address is required when selecting Email Verification.')
-        elif method == 'phone':
-            if not phone:
-                self.add_error('phone_number', 'Phone number is required when selecting Phone Verification.')
-            elif not re.match(r'^\+996\d{9}$', phone):
-                self.add_error('phone_number', 'Invalid Kyrgyz phone format. Use +996 followed by 9 digits.')
-
-        return cleaned_data
 
 
 # ==========================================
@@ -103,28 +60,16 @@ class CustomerRegistrationForm(forms.ModelForm):
 # ==========================================
 
 class UserSettingsForm(forms.ModelForm):
-    phone_number = forms.CharField(
-        max_length=13,
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'w-full bg-slate-800/80 border border-slate-700/80 rounded-2xl px-4 py-3 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all',
-            'placeholder': '+996 555 123 456'
-        })
-    )
-
-    passport_number = forms.CharField(
-        max_length=50,
-        required=True,
-        widget=forms.TextInput(attrs={
-            'class': 'w-full bg-slate-800/80 border border-slate-700/80 rounded-2xl px-4 py-3 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all',
-            'placeholder': 'Passport Number'
-        })
-    )
-
     profile_picture = forms.ImageField(
         required=False,
         widget=forms.FileInput(attrs={
             'class': 'text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer'
+        })
+    )
+    remove_profile_picture = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={
+            'class': 'h-4 w-4 rounded border-slate-700 bg-slate-800 text-indigo-600 focus:ring-indigo-500'
         })
     )
 
@@ -154,36 +99,25 @@ class UserSettingsForm(forms.ModelForm):
         self.profile_instance = kwargs.pop('profile_instance', None)
         super().__init__(*args, **kwargs)
         if self.profile_instance:
-            self.fields['phone_number'].initial = self.profile_instance.phone_number
-            self.fields['passport_number'].initial = self.profile_instance.passport_number
+            self.fields.pop('phone_number', None)
+            self.fields.pop('passport_number', None)
 
     def save(self, commit=True):
         user = super().save(commit=commit)
         if commit and self.profile_instance:
-            self.profile_instance.phone_number = self.cleaned_data.get('phone_number')
-            self.profile_instance.passport_number = self.cleaned_data.get('passport_number')
-
+            previous_picture = self.profile_instance.profile_picture
             uploaded_picture = self.cleaned_data.get('profile_picture')
             if uploaded_picture:
                 self.profile_instance.profile_picture = uploaded_picture
+            elif self.cleaned_data.get('remove_profile_picture'):
+                self.profile_instance.profile_picture = None
 
             self.profile_instance.save()
+
+            current_picture = self.profile_instance.profile_picture
+            if previous_picture and previous_picture.name != getattr(current_picture, 'name', None):
+                previous_picture.delete(save=False)
         return user
-
-    def clean_passport_number(self):
-        passport = self.cleaned_data['passport_number'].upper()
-        if not re.match(r'^(ID|AN)\d{7}$', passport):
-            raise forms.ValidationError('Passport must start with ID or AN followed by 7 digits.')
-        if UserProfile.objects.exclude(pk=self.profile_instance.pk).filter(passport_number=passport).exists():
-            raise forms.ValidationError('This passport number is already registered.')
-        return passport
-
-    def clean_phone_number(self):
-        phone = self.cleaned_data['phone_number'].strip()
-        if phone and not re.match(r'^\+996\d{9}$', phone):
-            raise forms.ValidationError('Phone number must be +996 followed by 9 digits.')
-        return phone
-
 
 # ==========================================
 # 📦 PRODUCT CREATION & UPDATE FORM

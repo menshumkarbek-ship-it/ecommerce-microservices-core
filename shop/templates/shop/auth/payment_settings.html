@@ -5,23 +5,32 @@
 {% block title %}TechVault | {% translate "Payment Settings" %}{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto px-6 py-12 min-h-[80vh] flex flex-col md:flex-row gap-8 text-slate-100">
+<div class="relative w-full min-h-screen flex flex-col lg:flex-row gap-0 text-slate-100">
+
+    <div class="lg:hidden p-4 border-b border-slate-800/80 bg-slate-950 grid grid-cols-3 gap-2">
+        <a href="{% url 'shop:account_settings' %}" class="px-2 py-3 text-center bg-slate-900 text-slate-300 border border-slate-800 text-[10px] font-bold uppercase tracking-wide rounded-xl">{% translate "Profile" %}</a>
+        <a href="{% url 'shop:payment_settings' %}" class="px-2 py-3 text-center bg-indigo-600 text-white text-[10px] font-black uppercase tracking-wide rounded-xl">{% translate "Payment" %}</a>
+        <a href="{% url 'shop:change_password' %}" class="px-2 py-3 text-center bg-slate-900 text-slate-300 border border-slate-800 text-[10px] font-bold uppercase tracking-wide rounded-xl">{% translate "Security" %}</a>
+    </div>
 
     <!-- 🧭 Navigation Sidebar Panel -->
-    <aside class="w-full md:w-64 space-y-2 flex-shrink-0">
-        <a href="{% url 'shop:account_settings' %}" class="block px-4 py-3 bg-slate-900/80 backdrop-blur-xl border border-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 text-xs font-bold uppercase tracking-wider rounded-xl transition-all">
+    <aside class="hidden lg:block w-72 flex-shrink-0 border-r border-slate-800/80 bg-slate-950 min-h-screen">
+        <div class="sticky top-28 p-6 space-y-2">
+        <a href="{% url 'shop:account_settings' %}" class="block px-4 py-3 bg-slate-900/80 text-slate-300 hover:bg-slate-800 border border-slate-800 text-xs font-bold uppercase tracking-wider rounded-xl transition-colors">
             <i class="fa-solid fa-user-gear mr-2 text-xs"></i> {% translate "Profile Settings" %}
         </a>
-        <a href="{% url 'shop:payment_settings' %}" class="block px-4 py-3 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-black uppercase tracking-wider rounded-xl shadow-lg shadow-indigo-900/20 transition-all">
+        <a href="{% url 'shop:payment_settings' %}" class="block px-4 py-3 bg-indigo-600 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg shadow-indigo-600/30">
             <i class="fa-solid fa-credit-card mr-2 text-xs"></i> {% translate "Payment Methods" %}
         </a>
-        <a href="{% url 'shop:change_password' %}" class="block px-4 py-3 bg-slate-900/80 backdrop-blur-xl border border-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 text-xs font-bold uppercase tracking-wider rounded-xl transition-all">
+        <a href="{% url 'shop:change_password' %}" class="block px-4 py-3 bg-slate-900/80 text-slate-300 hover:bg-slate-800 border border-slate-800 text-xs font-bold uppercase tracking-wider rounded-xl transition-colors">
             <i class="fa-solid fa-shield-halved mr-2 text-xs"></i> {% translate "Security & Password" %}
         </a>
+        </div>
     </aside>
 
     <!-- 💳 Main Payment Settings Panel -->
-    <section class="flex-grow bg-slate-900/80 backdrop-blur-xl border border-slate-800/80 rounded-3xl shadow-2xl p-6 sm:p-8">
+    <div class="flex-grow p-6 sm:p-12 bg-slate-950">
+    <section class="max-w-3xl bg-slate-900/80 backdrop-blur-xl border border-slate-800/80 rounded-3xl shadow-2xl p-6 sm:p-10 space-y-8">
         <div class="mb-8 pb-4 border-b border-slate-800">
             <h1 class="text-2xl font-black text-white tracking-tight">{% translate "Payment Settings" %}</h1>
             <p class="text-sm text-slate-400 mt-1">{% translate "Manage your digital wallets and primary electronic payment preferences." %}</p>
@@ -97,13 +106,6 @@
                            value="{{ request.user.first_name }} {{ request.user.last_name }}" readonly>
                 </div>
 
-                <div>
-                    <label class="block text-[11px] font-black uppercase text-slate-400 tracking-wider mb-1.5">
-                        {% translate "Registered Verification ID" %}
-                    </label>
-                    <input type="text" class="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl px-4 py-3 text-xs font-bold text-slate-400 cursor-not-allowed focus:outline-none"
-                           value="{{ user_profile.passport_number|default:_('Not Provided') }}" readonly>
-                </div>
             </div>
 
             <div class="pt-6 border-t border-slate-800 flex justify-start">
@@ -114,5 +116,6 @@
             </div>
         </form>
     </section>
+    </div>
 </div>
 {% endblock %}

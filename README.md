@@ -25,6 +25,8 @@ A Django storefront for browsing and selling mobile phones, laptops, and tablets
 
 3. Copy `.env.example` to `.env` and update the values for your environment.
 
+   For email registration and password verification codes, set `EMAIL_HOST_USER` to the Gmail address that sends mail and `EMAIL_HOST_PASSWORD` to a Gmail app password. Regular Gmail account passwords are not accepted by Gmail SMTP.
+
 4. Start PostgreSQL and Redis, then apply migrations and optionally seed the catalog:
 
    ```powershell

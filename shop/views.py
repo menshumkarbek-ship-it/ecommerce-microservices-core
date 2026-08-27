@@ -6,13 +6,15 @@ from django.contrib import messages
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
-from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
+from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm
 from django.views.decorators.http import require_POST
 from django.core.cache import cache
 from django.core.mail import send_mail
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
 from django.db import transaction
+from django.utils import timezone
+from datetime import timedelta
 
 from .models import Product, Category, Order, OrderItem, UserProfile
 from .forms import UserSettingsForm, ProductCreateForm, CustomerRegistrationForm
@@ -31,7 +33,13 @@ def home_page(request):
         categories = Category.objects.all()
         cache.set('global_store_categories', categories, 60 * 15)
 
-    hero_product = Product.objects.filter(is_sold=False).select_related('category').order_by('-id').first()
+    hero_product = Product.objects.filter(
+        is_sold=False
+    ).filter(
+        Q(category__slug__icontains='phone') |
+        Q(category__name__icontains='phone') |
+        Q(category__name__icontains='mobile')
+    ).select_related('category').order_by('-created_at', '-id').first()
 
     laptop_promo = Product.objects.filter(
         is_sold=False,
@@ -185,32 +193,24 @@ def register_customer(request):
             user.email = form.cleaned_data.get('email', '')
             user.save()
 
-            method = form.cleaned_data['verification_method']
             otp_code = f'{secrets.randbelow(900000) + 100000:06d}'
 
             profile = UserProfile.objects.create(
                 user=user,
-                passport_number=form.cleaned_data['passport_number'],
-                verification_method=method,
-                phone_number=form.cleaned_data.get('phone_number', '')
+                verification_method='email',
+                email_otp=otp_code,
             )
 
-            if method == 'email':
-                profile.email_otp = otp_code
-                profile.save()
-                send_mail(
-                    subject='TechVault Verification Code',
-                    message=f'Your activation code is: {otp_code}',
-                    from_email='noreply@techvault.com',
-                    recipient_list=[user.email],
-                    fail_silently=True,
-                )
-            else:
-                profile.phone_otp = otp_code
-                profile.save()
+            send_mail(
+                subject='TechVault Verification Code',
+                message=f'Your activation code is: {otp_code}',
+                from_email=None,
+                recipient_list=[user.email],
+                fail_silently=False,
+            )
 
             login(request, user)
-            messages.info(request, f"Please verify your code sent via {method}.")
+            messages.info(request, "Please verify the code sent to your email address.")
             return redirect('shop:verify_otp')
         else:
             messages.error(request, "Please correct the highlighted errors below.")
@@ -234,19 +234,12 @@ def verify_otp(request):
     if request.method == 'POST':
         entered_code = request.POST.get('otp_code', '').strip()
 
-        if profile.verification_method == 'email' and entered_code == profile.email_otp:
+        if entered_code == profile.email_otp:
             profile.is_email_verified = True
             profile.kyc_status = 'verified'
             profile.email_otp = None
             profile.save()
             messages.success(request, "Email verified successfully! Account fully activated.")
-            return redirect('shop:home')
-        elif profile.verification_method == 'phone' and entered_code == profile.phone_otp:
-            profile.is_phone_verified = True
-            profile.kyc_status = 'verified'
-            profile.phone_otp = None
-            profile.save()
-            messages.success(request, "Phone verified successfully! Account fully activated.")
             return redirect('shop:home')
         else:
             messages.error(request, "Invalid verification code. Please check and try again.")
@@ -337,16 +330,49 @@ def account_settings(request):
 @login_required
 def change_password(request):
     if request.method == 'POST':
-        form = PasswordChangeForm(request.user, request.POST)
-        if form.is_valid():
-            user = form.save()
-            update_session_auth_hash(request, user)
-            messages.success(request, "Your password was successfully updated!")
-            return redirect('shop:account_settings')
+        profile = request.user.profile
+        if request.POST.get('action') == 'send_code':
+            profile.password_change_otp = f'{secrets.randbelow(900000) + 100000:06d}'
+            profile.password_change_otp_created_at = timezone.now()
+            profile.save(update_fields=['password_change_otp', 'password_change_otp_created_at'])
+            send_mail(
+                subject='TechVault Password Change Code',
+                message=f'Your password change code is: {profile.password_change_otp}',
+                from_email=None,
+                recipient_list=[request.user.email],
+                fail_silently=False,
+            )
+            messages.success(request, "A password change code was sent to your email.")
         else:
+            form = SetPasswordForm(request.user, request.POST)
+            code = request.POST.get('otp_code', '').strip()
+            code_created_at = profile.password_change_otp_created_at
+            code_is_valid = (
+                code == profile.password_change_otp and
+                code_created_at and
+                timezone.now() - code_created_at <= timedelta(minutes=10)
+            )
+            if form.is_valid() and code_is_valid:
+                user = form.save()
+                profile.password_change_otp = None
+                profile.password_change_otp_created_at = None
+                profile.save(update_fields=['password_change_otp', 'password_change_otp_created_at'])
+                update_session_auth_hash(request, user)
+                messages.success(request, "Your password was successfully updated!")
+                return redirect('shop:account_settings')
+            if not code_is_valid:
+                form.add_error(None, 'Invalid or expired email verification code.')
             messages.error(request, "Please correct the errors down below.")
     else:
-        form = PasswordChangeForm(request.user)
+        form = SetPasswordForm(request.user)
+
+    if 'form' not in locals():
+        form = SetPasswordForm(request.user)
+
+    for field in form.fields.values():
+        field.widget.attrs.update({
+            'class': 'w-full bg-slate-800/80 border border-slate-700/80 rounded-2xl px-4 py-3 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all',
+        })
     return render(request, 'shop/auth/change_password.html', {'form': form})
 
 

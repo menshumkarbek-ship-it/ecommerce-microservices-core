@@ -7,11 +7,167 @@
     <title>{% block title %}TechVault | {% translate "Premium Electronics" %}{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        if (localStorage.getItem('techvault-theme') === 'light') {
+            document.documentElement.classList.add('theme-light');
+        }
+    </script>
     <style>
         .profile-dropdown:focus-within .dropdown-menu {
             opacity: 1;
             transform: translateY(0) scale(1);
             pointer-events: auto;
+        }
+
+        .theme-light body {
+            background-color: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .theme-light [class~="bg-slate-950"],
+        .theme-light [class~="bg-slate-950/60"],
+        .theme-light [class~="bg-slate-950/80"] {
+            background-color: #f8fafc !important;
+        }
+
+        .theme-light [class~="bg-slate-900"],
+        .theme-light [class~="bg-slate-900/80"],
+        .theme-light [class~="bg-slate-900/95"] {
+            background-color: #ffffff !important;
+        }
+
+        .theme-light [class~="bg-slate-800"],
+        .theme-light [class~="bg-slate-800/30"],
+        .theme-light [class~="bg-slate-800/80"] {
+            background-color: #e2e8f0 !important;
+        }
+
+        .theme-light [class~="text-white"],
+        .theme-light [class~="text-slate-100"],
+        .theme-light [class~="text-slate-200"] {
+            color: #0f172a !important;
+        }
+
+        .theme-light [class~="text-slate-300"],
+        .theme-light [class~="text-slate-400"] {
+            color: #475569 !important;
+        }
+
+        .theme-light [class~="text-slate-500"] {
+            color: #64748b !important;
+        }
+
+        .theme-light [class~="border-slate-800"],
+        .theme-light [class~="border-slate-800/80"],
+        .theme-light [class~="border-slate-800/60"],
+        .theme-light [class~="border-slate-700"],
+        .theme-light [class~="border-slate-700/80"] {
+            border-color: #cbd5e1 !important;
+        }
+
+        .theme-light [class~="bg-indigo-950/60"] {
+            background-color: #eef2ff !important;
+        }
+
+        .theme-light [class~="bg-emerald-950/60"] {
+            background-color: #ecfdf5 !important;
+        }
+
+        .theme-light [class~="bg-amber-950/40"] {
+            background-color: #fffbeb !important;
+        }
+
+        .theme-light input,
+        .theme-light select,
+        .theme-light textarea {
+            color: #0f172a !important;
+        }
+
+        .theme-light [class~="placeholder-slate-400"]::placeholder {
+            color: #64748b !important;
+        }
+
+        .theme-light [class~="bg-white"] {
+            background-color: #ffffff !important;
+        }
+
+        .theme-light .theme-toggle-sun,
+        .theme-toggle-moon {
+            display: none;
+        }
+
+        .theme-light .theme-toggle-moon {
+            display: inline-block;
+        }
+
+        .theme-toggle {
+            width: 2.5rem;
+            height: 2.5rem;
+        }
+
+        .product-management .bg-white {
+            background-color: #0f172a !important;
+        }
+
+        .product-management .bg-gray-50,
+        .product-management .bg-gray-50\/50 {
+            background-color: #1e293b !important;
+        }
+
+        .product-management .text-gray-950,
+        .product-management .text-gray-900 {
+            color: #f8fafc !important;
+        }
+
+        .product-management .text-gray-600,
+        .product-management .text-gray-500,
+        .product-management .text-gray-400 {
+            color: #94a3b8 !important;
+        }
+
+        .product-management .border-gray-200\/80,
+        .product-management .border-gray-100,
+        .product-management .border-gray-50,
+        .product-management .border-gray-100\/50 {
+            border-color: #334155 !important;
+        }
+
+        .theme-light .product-management .bg-white {
+            background-color: #ffffff !important;
+        }
+
+        .theme-light .product-management .bg-gray-50,
+        .theme-light .product-management .bg-gray-50\/50 {
+            background-color: #f8fafc !important;
+        }
+
+        .theme-light .product-management .text-gray-950,
+        .theme-light .product-management .text-gray-900 {
+            color: #0f172a !important;
+        }
+
+        .theme-light .product-management .text-gray-600 {
+            color: #475569 !important;
+        }
+
+        .theme-light .product-management .text-gray-500,
+        .theme-light .product-management .text-gray-400 {
+            color: #64748b !important;
+        }
+
+        .theme-light .product-management .border-gray-200\/80,
+        .theme-light .product-management .border-gray-100,
+        .theme-light .product-management .border-gray-50,
+        .theme-light .product-management .border-gray-100\/50 {
+            border-color: #e2e8f0 !important;
+        }
+
+        .theme-light .product-management input,
+        .theme-light .product-management select,
+        .theme-light .product-management textarea {
+            background-color: #f8fafc !important;
+            border-color: #cbd5e1 !important;
+            color: #0f172a !important;
         }
     </style>
 </head>
@@ -23,7 +179,7 @@
 
                 <div class="flex items-center flex-shrink-0">
                     <a href="{% url 'shop:home' %}" class="text-2xl font-black tracking-tight text-white hover:opacity-90 transition-opacity flex items-center gap-2">
-                        <i class="fa-solid fa-mobile-screen-button text-indigo-500"></i> TechVault<span class="text-indigo-500">.</span>
+                        TechVault<span class="text-indigo-500">.</span>
                     </a>
                 </div>
 
@@ -80,14 +236,19 @@
                             {% get_available_languages as AVAILABLE_LANGS %}
                             {% for lang_code, lang_name in AVAILABLE_LANGS %}
                                 <option value="{{ lang_code }}" {% if lang_code == CURRENT_LANG %}selected{% endif %} class="bg-slate-900 text-slate-200">
-                                    {{ lang_code|upper }}
+                                    {{ lang_name }}
                                 </option>
                             {% endfor %}
                         </select>
                     </form>
 
+                    <button type="button" id="theme-toggle" class="theme-toggle inline-flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-700/80 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500" aria-label="{% translate 'Toggle color theme' %}" title="{% translate 'Toggle color theme' %}">
+                        <i class="fa-solid fa-sun theme-toggle-sun text-amber-400"></i>
+                        <i class="fa-solid fa-moon theme-toggle-moon text-indigo-400"></i>
+                    </button>
+
                     <!-- 🛡️ ADMIN AUDIT LOG vs CUSTOMER CART SWITCHER -->
-                    {% if request.user.is_authenticated and request.user.is_staff %}
+                    {% if request.user.is_authenticated and is_admin_user %}
                         <a href="{% url 'shop:admin_purchase_history' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-950/80 border border-indigo-800/80 hover:border-indigo-500 text-indigo-400 rounded-xl text-xs font-bold transition-all shadow-md">
                             <i class="fa-solid fa-clock-rotate-left"></i>
                             <span>{% translate "Audit Log" %}</span>
@@ -128,7 +289,7 @@
                                 </div>
 
                                 <div class="p-1.5 space-y-0.5 text-slate-300">
-                                    {% if request.user.is_staff or request.user.is_superuser %}
+                                    {% if is_admin_user %}
                                         <a href="{% url 'shop:create_product' %}" class="flex items-center px-3 py-2.5 text-sm font-bold text-indigo-400 hover:bg-slate-800 rounded-xl transition-colors">
                                             <i class="fa-solid fa-plus mr-2.5 text-xs"></i> {% translate "Add Product Portal" %}
                                         </a>
@@ -137,9 +298,6 @@
 
                                     <a href="{% url 'shop:order_history' %}" class="flex items-center px-3 py-2.5 text-sm font-semibold hover:bg-slate-800 hover:text-white rounded-xl transition-colors">
                                         <i class="fa-solid fa-receipt mr-2.5 text-xs text-slate-400"></i> {% translate "Purchased Orders" %}
-                                    </a>
-                                    <a href="{% url 'shop:payment_settings' %}" class="flex items-center px-3 py-2.5 text-sm font-semibold hover:bg-slate-800 hover:text-white rounded-xl transition-colors">
-                                        <i class="fa-solid fa-credit-card mr-2.5 text-xs text-slate-400"></i> {% translate "Update Payment Method" %}
                                     </a>
                                     <a href="{% url 'shop:account_settings' %}" class="flex items-center px-3 py-2.5 text-sm font-semibold hover:bg-slate-800 hover:text-white rounded-xl transition-colors">
                                         <i class="fa-solid fa-gear mr-2.5 text-xs text-slate-400"></i> {% translate "Account Settings" %}
@@ -186,6 +344,16 @@
     {% endif %}
 
     {% block extra_js %}{% endblock %}
+
+    <script>
+        const themeToggle = document.getElementById('theme-toggle');
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const isLight = document.documentElement.classList.toggle('theme-light');
+                localStorage.setItem('techvault-theme', isLight ? 'light' : 'dark');
+            });
+        }
+    </script>
 
 </body>
 </html>

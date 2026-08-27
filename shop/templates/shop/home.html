@@ -105,7 +105,6 @@
                 </div>
               {% else %}
                 <div class="w-full max-w-sm aspect-square flex items-center justify-center p-6 bg-slate-900 rounded-3xl shadow-2xl border border-slate-800 text-center">
-                  <i class="fa-solid fa-laptop text-7xl text-cyan-400"></i>
                 </div>
               {% endif %}
             </div>
@@ -158,7 +157,6 @@
                 </div>
               {% else %}
                 <div class="w-full max-w-sm aspect-square flex items-center justify-center p-6 bg-slate-900 rounded-3xl shadow-2xl border border-slate-800 text-center">
-                  <i class="fa-solid fa-tablet-screen-button text-7xl text-emerald-400"></i>
                 </div>
               {% endif %}
             </div>
@@ -178,7 +176,7 @@
   <section class="space-y-6">
     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
       <h2 class="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-        <i class="fa-solid fa-mobile-screen-button text-indigo-400"></i> {% translate "Phones Top Picks" %}
+        {% translate "Phones Top Picks" %}
       </h2>
       <a href="{% url 'shop:product_list' %}?type=phones" class="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors">{% translate "View All Phones" %} &rarr;</a>
     </div>
@@ -193,7 +191,6 @@
           {% if product.image %}
             <img src="{{ product.image.url }}" alt="{{ product.name }}" style="mix-blend-mode: multiply;" class="h-full w-full object-contain object-center group-hover:scale-105 transition-transform duration-300">
           {% else %}
-            <i class="fa-solid fa-mobile-screen text-3xl text-slate-400"></i>
           {% endif %}
         </div>
         <div class="mt-3 space-y-1">
@@ -231,7 +228,7 @@
   <section class="space-y-6">
     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
       <h2 class="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-        <i class="fa-solid fa-laptop text-cyan-400"></i> {% translate "Laptops Top Picks" %}
+        {% translate "Laptops Top Picks" %}
       </h2>
       <a href="{% url 'shop:product_list' %}?type=laptops" class="text-xs font-bold text-cyan-400 hover:text-cyan-300 transition-colors">{% translate "View All Laptops" %} &rarr;</a>
     </div>
@@ -246,7 +243,6 @@
           {% if product.image %}
             <img src="{{ product.image.url }}" alt="{{ product.name }}" style="mix-blend-mode: multiply;" class="h-full w-full object-contain object-center group-hover:scale-105 transition-transform duration-300">
           {% else %}
-            <i class="fa-solid fa-laptop text-3xl text-slate-400"></i>
           {% endif %}
         </div>
         <div class="mt-3 space-y-1">
@@ -284,7 +280,7 @@
   <section class="space-y-6">
     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
       <h2 class="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-        <i class="fa-solid fa-tablet-screen-button text-emerald-400"></i> {% translate "Tablets Top Picks" %}
+        {% translate "Tablets Top Picks" %}
       </h2>
       <a href="{% url 'shop:product_list' %}?type=tablets" class="text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-colors">{% translate "View All Tablets" %} &rarr;</a>
     </div>
@@ -299,7 +295,6 @@
           {% if product.image %}
             <img src="{{ product.image.url }}" alt="{{ product.name }}" style="mix-blend-mode: multiply;" class="h-full w-full object-contain object-center group-hover:scale-105 transition-transform duration-300">
           {% else %}
-            <i class="fa-solid fa-tablet-screen-button text-3xl text-slate-400"></i>
           {% endif %}
         </div>
         <div class="mt-3 space-y-1">

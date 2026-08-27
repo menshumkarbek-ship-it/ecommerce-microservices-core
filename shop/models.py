@@ -29,21 +29,13 @@ class UserProfile(models.Model):
     passport_number = models.CharField(
         max_length=9,
         unique=True,
-        validators=[
-            RegexValidator(
-                regex=r'^(ID|AN)\d{7}$',
-                message="Passport must start with ID or AN followed by 7 digits (e.g., ID1234567)."
-            )
-        ],
-        help_text="Required Kyrgyz Passport ID (e.g. ID1234567)"
+        blank=True,
+        null=True,
+        help_text="Legacy field retained for existing accounts."
     )
 
     # Preferred Verification Route
-    verification_method = models.CharField(
-        max_length=10,
-        choices=VERIFICATION_METHOD_CHOICES,
-        default='email'
-    )
+    verification_method = models.CharField(max_length=10, default='email')
 
     # Phone Verification (+996 format)
     phone_number = models.CharField(
@@ -63,6 +55,8 @@ class UserProfile(models.Model):
     # Email Verification
     email_otp = models.CharField(max_length=6, blank=True, null=True)
     is_email_verified = models.BooleanField(default=False)
+    password_change_otp = models.CharField(max_length=6, blank=True, null=True)
+    password_change_otp_created_at = models.DateTimeField(blank=True, null=True)
 
     # KYC Verification Status
     kyc_status = models.CharField(max_length=10, choices=KYC_STATUS_CHOICES, default='pending')
@@ -71,7 +65,7 @@ class UserProfile(models.Model):
     profile_picture = models.ImageField(upload_to="profile_pics/", blank=True, null=True)
 
     def __str__(self):
-        return f"{self.user.first_name} {self.user.last_name} ({self.passport_number})"
+        return f"{self.user.first_name} {self.user.last_name}"
 
 
 # ==========================================
