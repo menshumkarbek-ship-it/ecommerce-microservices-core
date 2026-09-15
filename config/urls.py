@@ -17,7 +17,7 @@ def robots_txt(request):
         f"Disallow: /{settings.ADMIN_URL}",
         "Disallow: /admin/",
         "Allow: /",
-        "Sitemap: https://techvault-c6us.onrender.com/sitemap.xml",
+        f"Sitemap: https://{settings.SITE_DOMAIN}/sitemap.xml",
     ]
     return HttpResponse("\n".join(lines), content_type="text/plain")
 

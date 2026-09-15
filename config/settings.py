@@ -21,14 +21,21 @@ if not SECRET_KEY:
     else:
         raise ImproperlyConfigured('SECRET_KEY must be set when DEBUG=False.')
 
-# Parse comma-separated string from .env into a list
-# ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', '').split(',') if host.strip()]
-ALLOWED_HOSTS = ['*']
+# Parse comma-separated string from .env into a list. Must be set in
+# production (e.g. ALLOWED_HOSTS=your-app.onrender.com) — an empty list
+# with DEBUG=False makes Django reject every request, so a forgotten env
+# var fails closed instead of silently accepting any Host header.
+ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', '').split(',') if host.strip()]
 
 # 🔒 Django admin is mounted at a non-default path (instead of /admin/) to keep
 # it off the beaten path for bots/scanners. Override via .env if needed; the
 # trailing slash matters since it's used directly in a urls.py path().
 ADMIN_URL = os.getenv('ADMIN_URL', 'system-console/').strip().strip('/') + '/'
+
+# Public domain the site is served from (no scheme, no trailing slash) —
+# used to build absolute URLs for the sitemap and robots.txt. Override via
+# .env once the real Render service/custom domain is known.
+SITE_DOMAIN = os.getenv('SITE_DOMAIN', 'techvault-c6us.onrender.com').strip().strip('/')
 
 # The storefront has no customer accounts/login of its own (view-only catalog).
 # Staff/managers authenticate through Django's admin login form, wherever
@@ -44,6 +51,7 @@ LOGOUT_REDIRECT_URL = 'shop:home'
 INSTALLED_APPS = [
     'unfold',
     'django.contrib.admin',
+    'storages',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -158,7 +166,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 CSRF_TRUSTED_ORIGINS = [
     'https://*.onrender.com',
@@ -167,8 +174,40 @@ CSRF_TRUSTED_ORIGINS = [
 # Base url to serve media files
 MEDIA_URL = '/media/'
 
-# Path where media files are physically stored on your computer
+# Path where media files are physically stored on your computer (used only
+# when R2 isn't configured — see STORAGES below).
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Cloudflare R2 (S3-compatible) for uploaded product/about images: a host's
+# local disk doesn't survive redeploys, so this must live somewhere durable
+# in production. Falls back to local disk automatically when the R2 env
+# vars aren't set, so local dev needs no bucket.
+R2_BUCKET_NAME = os.getenv('R2_BUCKET_NAME')
+
+STORAGES = {
+    'default': {
+        'BACKEND': 'storages.backends.s3.S3Storage',
+        'OPTIONS': {
+            'bucket_name': R2_BUCKET_NAME,
+            'access_key': os.getenv('R2_ACCESS_KEY_ID'),
+            'secret_key': os.getenv('R2_SECRET_ACCESS_KEY'),
+            'endpoint_url': os.getenv('R2_ENDPOINT_URL'),
+            'custom_domain': os.getenv('R2_PUBLIC_DOMAIN') or None,
+            'default_acl': None,
+            'querystring_auth': False,
+        },
+    } if R2_BUCKET_NAME else {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    # whitenoise.storage.CompressedManifestStaticFilesStorage adds
+    # content-hashed filenames + gzip/brotli compression for static assets.
+    # Django 6 only reads this via STORAGES (the legacy STATICFILES_STORAGE
+    # setting is no longer honored, so setting only that name silently did
+    # nothing).
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
 
 # ==========================================
 # 📑 DRF & API DOCUMENTATION SETTINGS

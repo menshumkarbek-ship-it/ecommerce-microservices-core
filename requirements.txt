@@ -7,6 +7,8 @@ asyncpg==0.31.0
 attrs==26.1.0
 billiard==4.2.4
 blinker==1.9.0
+boto3==1.43.94
+botocore==1.43.94
 celery==5.6.2
 certifi==2026.6.17
 channels==4.3.2
@@ -20,6 +22,7 @@ databases==0.9.0
 dj-database-url==3.1.2
 Django==6.0.7
 django-redis==7.0.0
+django-storages==1.14.6
 django-stubs==6.0.7
 django-stubs-ext==6.0.7
 django-unfold==0.106.1
@@ -34,6 +37,7 @@ idna==3.18
 inflection==0.5.1
 itsdangerous==2.2.0
 Jinja2==3.1.6
+jmespath==1.1.0
 jsonschema==4.26.0
 jsonschema-specifications==2025.9.1
 kombu==5.6.2
@@ -52,6 +56,7 @@ redis==8.0.1
 referencing==0.37.0
 requests==2.34.2
 rpds-py==2026.6.3
+s3transfer==0.19.2
 six==1.17.0
 SQLAlchemy==2.0.51
 sqlparse==0.5.5

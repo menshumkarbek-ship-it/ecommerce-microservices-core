@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
 
@@ -15,5 +16,5 @@ class StaticViewSitemap(Sitemap):
     def get_urls(self, page=1, site=None, protocol=None):
         urls = super().get_urls(page, site, protocol=self.protocol)
         for url_info in urls:
-            url_info['location'] = url_info['location'].replace('example.com', 'techvault-c6us.onrender.com')
+            url_info['location'] = url_info['location'].replace('example.com', settings.SITE_DOMAIN)
         return urls
