@@ -5,7 +5,6 @@ set -o errexit
 pip install -r requirements.txt
 python manage.py collectstatic --no-input
 python manage.py migrate
-python manage.py loaddata datadump.json
 
 # One-time staff account bootstrap: only runs when DJANGO_SUPERUSER_USERNAME
 # is set (e.g. on the very first deploy). Django's --noinput reads
