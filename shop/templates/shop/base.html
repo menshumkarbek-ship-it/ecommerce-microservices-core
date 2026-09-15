@@ -7,6 +7,31 @@
     <meta name="google-site-verification" content="1rzUjNt1yLmNpV5M-uHcX_GX9CodyXjgnCmvGEf28ic" />
     <title>{% block title %}{{ store_name }} | {% translate "Premium Electronics" %}{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // The dark theme is built entirely out of Tailwind's `slate` (blue-grey)
+        // and `indigo` scales. Remapping the two scales here re-skins every
+        // template at once: near-black surfaces instead of navy, with a more
+        // electric blue accent. Class names stay the same, so the light-theme
+        // overrides in the stylesheet below keep working untouched.
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            50: '#f7f8fa', 100: '#eceef3', 200: '#d5d9e2', 300: '#aeb5c4',
+                            400: '#828ba0', 500: '#5f677a', 600: '#434c5e', 700: '#2b3344',
+                            800: '#1c2230', 900: '#11151f', 950: '#05070c',
+                        },
+                        indigo: {
+                            50: '#eef3ff', 100: '#dce6ff', 200: '#bdcdff', 300: '#93abff',
+                            400: '#6b8bff', 500: '#4a6cf7', 600: '#3557e8', 700: '#2942c4',
+                            800: '#22359b', 900: '#1b2a72', 950: '#111a45',
+                        },
+                    },
+                },
+            },
+        };
+    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script>
         if (localStorage.getItem('techvault-theme') === 'light') {
@@ -94,34 +119,125 @@
             background-color: #ffffff !important;
         }
 
-        .theme-light .theme-toggle-sun,
-        .theme-toggle-moon {
+        /* Compact theme switch, sized to sit level with the language select
+           next to it. Both icons live inside the track; the knob slides over
+           the one for the theme that's currently on, leaving the other dimmed
+           as the thing a click switches to. */
+        .theme-toggle {
+            position: relative;
+            flex: none;
+            width: 3.1rem;
+            height: 1.75rem;
+            padding: 0;
+            border-radius: 9999px;
+            background-color: #1c2230;
+            border: 1px solid #2b3344;
+            transition: background-color .28s ease, border-color .28s ease;
+        }
+
+        .theme-light .theme-toggle {
+            background-color: #cbd5e1;
+            border-color: #cbd5e1;
+        }
+
+        .theme-toggle-dim {
+            position: absolute;
+            top: 50%;
+            margin-top: -0.4rem;
+            line-height: .8rem;
+            font-size: .6rem;
+            color: #5f677a;
+        }
+
+        .theme-light .theme-toggle-dim {
+            color: #ffffff;
+        }
+
+        .theme-toggle-dim-sun {
+            left: .42rem;
+        }
+
+        .theme-toggle-dim-moon {
+            right: .42rem;
+        }
+
+        .theme-toggle-knob {
+            position: absolute;
+            top: 50%;
+            left: calc(100% - 1.55rem);
+            width: 1.35rem;
+            height: 1.35rem;
+            margin-top: -0.675rem;
+            border-radius: 9999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .6rem;
+            color: #ffffff;
+            background-color: #4a6cf7;
+            transition: left .28s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        .theme-light .theme-toggle-knob {
+            left: .2rem;
+        }
+
+        /* Dark is the default: knob shows the moon, the sun stays dimmed on
+           the left. The light theme mirrors both. */
+        .theme-light .theme-toggle-dim-sun,
+        .theme-light .theme-toggle-knob-moon,
+        .theme-toggle-dim-moon,
+        .theme-toggle-knob-sun {
             display: none;
         }
 
-        .theme-light .theme-toggle-moon {
+        .theme-light .theme-toggle-dim-moon,
+        .theme-light .theme-toggle-knob-sun {
             display: inline-block;
-        }
-
-        .theme-toggle {
-            width: 2.25rem;
-            height: 2.25rem;
         }
 
         @media (min-width: 640px) {
             .theme-toggle {
-                width: 2.5rem;
-                height: 2.5rem;
+                width: 3.6rem;
+                height: 2.1rem;
+            }
+
+            .theme-toggle-knob {
+                left: calc(100% - 1.85rem);
+                width: 1.65rem;
+                height: 1.65rem;
+                margin-top: -0.825rem;
+                font-size: .7rem;
+            }
+
+            .theme-light .theme-toggle-knob {
+                left: .225rem;
+            }
+
+            .theme-toggle-dim {
+                font-size: .68rem;
+                margin-top: -0.45rem;
+                line-height: .9rem;
+            }
+
+            .theme-toggle-dim-sun {
+                left: .55rem;
+            }
+
+            .theme-toggle-dim-moon {
+                right: .55rem;
             }
         }
 
         .product-management .bg-white {
-            background-color: #0f172a !important;
+            background-color: #11151f !important;
         }
 
         .product-management .bg-gray-50,
-        .product-management .bg-gray-50\/50 {
-            background-color: #1e293b !important;
+        .product-management .bg-gray-50\/50,
+        .product-management .bg-gray-50\/70,
+        .product-management .bg-gray-100 {
+            background-color: #1c2230 !important;
         }
 
         .product-management .text-gray-950,
@@ -129,17 +245,22 @@
             color: #f8fafc !important;
         }
 
+        .product-management .text-gray-800,
+        .product-management .text-gray-700 {
+            color: #d5d9e2 !important;
+        }
+
         .product-management .text-gray-600,
         .product-management .text-gray-500,
         .product-management .text-gray-400 {
-            color: #94a3b8 !important;
+            color: #828ba0 !important;
         }
 
         .product-management .border-gray-200\/80,
         .product-management .border-gray-100,
         .product-management .border-gray-50,
         .product-management .border-gray-100\/50 {
-            border-color: #334155 !important;
+            border-color: #2b3344 !important;
         }
 
         .theme-light .product-management .bg-white {
@@ -154,6 +275,11 @@
         .theme-light .product-management .text-gray-950,
         .theme-light .product-management .text-gray-900 {
             color: #0f172a !important;
+        }
+
+        .theme-light .product-management .text-gray-800,
+        .theme-light .product-management .text-gray-700 {
+            color: #1e293b !important;
         }
 
         .theme-light .product-management .text-gray-600 {
@@ -250,9 +376,13 @@
                         </select>
                     </form>
 
-                    <button type="button" id="theme-toggle" class="theme-toggle inline-flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-700/80 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500" aria-label="{% translate 'Toggle color theme' %}" title="{% translate 'Toggle color theme' %}">
-                        <i class="fa-solid fa-sun theme-toggle-sun text-amber-400"></i>
-                        <i class="fa-solid fa-moon theme-toggle-moon text-indigo-400"></i>
+                    <button type="button" id="theme-toggle" class="theme-toggle focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-950" aria-label="{% translate 'Toggle color theme' %}" title="{% translate 'Toggle color theme' %}">
+                        <i class="fa-solid fa-sun theme-toggle-dim theme-toggle-dim-sun"></i>
+                        <i class="fa-solid fa-moon theme-toggle-dim theme-toggle-dim-moon"></i>
+                        <span class="theme-toggle-knob">
+                            <i class="fa-solid fa-moon theme-toggle-knob-moon"></i>
+                            <i class="fa-solid fa-sun theme-toggle-knob-sun"></i>
+                        </span>
                     </button>
 
                     <!-- 🛡️ STAFF-ONLY MANAGEMENT LINK (this is a view-only storefront: no cart, checkout, or customer accounts) -->

@@ -7,60 +7,91 @@
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8 min-h-screen">
 
-    <!-- Filter Bar Section -->
+    <!-- Filter Bar Section: collapsible accordion rows on phones, one -->
+    <!-- horizontal bar from sm: upward (the accordion bodies carry sm:block, -->
+    <!-- so every field is always open on wider screens). -->
     <section class="bg-slate-900/80 backdrop-blur-xl rounded-3xl border border-slate-800/80 p-4 sm:p-6 shadow-xl">
-        <form method="GET" action="{% url 'shop:product_list' %}" class="space-y-4">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
 
-                <div>
-                    <label class="block text-[11px] font-black uppercase text-slate-400 tracking-wider mb-1.5">
+        <div class="sm:hidden flex items-center justify-between mb-2">
+            <h2 class="text-base font-black text-white">{% translate "Filters" %}</h2>
+            {% if has_active_filters %}
+                <a href="{% url 'shop:product_list' %}" class="text-[11px] font-bold text-slate-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark"></i> {% translate "Reset" %}
+                </a>
+            {% endif %}
+        </div>
+
+        <form method="GET" action="{% url 'shop:product_list' %}">
+            <div class="divide-y divide-slate-800/80 sm:divide-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-5 sm:gap-4 sm:items-end">
+
+                <div class="filter-group py-3 sm:py-0">
+                    <button type="button" class="filter-toggle sm:hidden w-full flex items-center justify-between gap-2 text-left">
+                        <span class="text-sm font-bold text-slate-100">{% translate "Device Type" %}</span>
+                        <i class="fa-solid fa-chevron-down text-[11px] text-slate-400 transition-transform duration-200 {% if selected_type %}rotate-180{% endif %}"></i>
+                    </button>
+                    <label class="hidden sm:block text-[11px] font-black uppercase text-slate-400 tracking-wider mb-1.5">
                         {% translate "Device Type" %}
                     </label>
-                    <select name="type" class="w-full bg-slate-800/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer">
-                        <option value="" class="bg-slate-900">{% translate "All Gadget Types" %}</option>
-                        {% for cat in categories %}
-                            <option value="{{ cat.slug }}" {% if selected_type == cat.slug %}selected{% endif %} class="bg-slate-900">
-                                {{ cat.translated_name }}
-                            </option>
-                        {% endfor %}
-                    </select>
+                    <div class="filter-body {% if not selected_type %}hidden{% endif %} sm:block pt-3 sm:pt-0">
+                        <select name="type" class="w-full bg-slate-800/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer">
+                            <option value="" class="bg-slate-900">{% translate "All Gadget Types" %}</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat.slug }}" {% if selected_type == cat.slug %}selected{% endif %} class="bg-slate-900">
+                                    {{ cat.translated_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
 
-                <div>
-                    <label class="block text-[11px] font-black uppercase text-slate-400 tracking-wider mb-1.5">
+                <div class="filter-group py-3 sm:py-0">
+                    <button type="button" class="filter-toggle sm:hidden w-full flex items-center justify-between gap-2 text-left">
+                        <span class="text-sm font-bold text-slate-100">{% translate "Brand / Model" %}</span>
+                        <i class="fa-solid fa-chevron-down text-[11px] text-slate-400 transition-transform duration-200 {% if selected_brand %}rotate-180{% endif %}"></i>
+                    </button>
+                    <label class="hidden sm:block text-[11px] font-black uppercase text-slate-400 tracking-wider mb-1.5">
                         {% translate "Brand / Model" %}
                     </label>
-                    <select name="brand" class="w-full bg-slate-800/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer">
-                        <option value="" class="bg-slate-900">{% translate "All Brands" %}</option>
-                        {% for brand in available_brands %}
-                            <option value="{{ brand }}" {% if selected_brand == brand %}selected{% endif %} class="bg-slate-900">
-                                {{ brand }}
-                            </option>
-                        {% endfor %}
-                    </select>
+                    <div class="filter-body {% if not selected_brand %}hidden{% endif %} sm:block pt-3 sm:pt-0">
+                        <select name="brand" class="w-full bg-slate-800/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer">
+                            <option value="" class="bg-slate-900">{% translate "All Brands" %}</option>
+                            {% for brand in available_brands %}
+                                <option value="{{ brand }}" {% if selected_brand == brand %}selected{% endif %} class="bg-slate-900">
+                                    {{ brand }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
 
-                <div>
-                    <label class="block text-[11px] font-black uppercase text-slate-400 tracking-wider mb-1.5">
-                        {% translate "Min Price (som)" %}
-                    </label>
-                    <input type="number" name="min_price" value="{{ min_price }}" placeholder="0" class="w-full bg-slate-800/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                <div class="filter-group py-3 sm:py-0 sm:col-span-2">
+                    <button type="button" class="filter-toggle sm:hidden w-full flex items-center justify-between gap-2 text-left">
+                        <span class="text-sm font-bold text-slate-100">{% translate "Price" %}</span>
+                        <i class="fa-solid fa-chevron-down text-[11px] text-slate-400 transition-transform duration-200 {% if min_price or max_price %}rotate-180{% endif %}"></i>
+                    </button>
+                    <div class="filter-body {% if not min_price and not max_price %}hidden{% endif %} grid sm:grid grid-cols-2 gap-3 sm:gap-4 pt-3 sm:pt-0">
+                        <div>
+                            <label class="hidden sm:block text-[11px] font-black uppercase text-slate-400 tracking-wider mb-1.5">
+                                {% translate "Min Price (som)" %}
+                            </label>
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" name="min_price" value="{{ min_price }}" placeholder="0" onwheel="this.blur()" oninput="this.value=this.value.replace(/[^0-9]/g, '')" class="w-full bg-slate-800/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="hidden sm:block text-[11px] font-black uppercase text-slate-400 tracking-wider mb-1.5">
+                                {% translate "Max Price (som)" %}
+                            </label>
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" name="max_price" value="{{ max_price }}" placeholder="3000" onwheel="this.blur()" oninput="this.value=this.value.replace(/[^0-9]/g, '')" class="w-full bg-slate-800/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        </div>
+                    </div>
                 </div>
 
-                <div>
-                    <label class="block text-[11px] font-black uppercase text-slate-400 tracking-wider mb-1.5">
-                        {% translate "Max Price (som)" %}
-                    </label>
-                    <input type="number" name="max_price" value="{{ max_price }}" placeholder="3000" class="w-full bg-slate-800/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                </div>
-
-                <div class="flex items-center gap-2">
-                    <button type="submit" class="flex-grow py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-indigo-600/30 flex items-center justify-center gap-2">
+                <div class="flex items-center gap-2 pt-4 sm:pt-0 sm:col-span-2 lg:col-span-1">
+                    <button type="submit" class="flex-grow py-3.5 sm:py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm sm:text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-indigo-600/30 flex items-center justify-center gap-2">
                         <i class="fa-solid fa-magnifying-glass text-xs"></i>
-                        <span>{% translate "Filter" %}</span>
+                        <span>{% translate "Apply" %}</span>
                     </button>
                     {% if has_active_filters %}
-                        <a href="{% url 'shop:product_list' %}" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-xl text-xs font-bold transition-all border border-slate-700">
+                        <a href="{% url 'shop:product_list' %}" class="hidden sm:block px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-xl text-xs font-bold transition-all border border-slate-700">
                             <i class="fa-solid fa-xmark"></i>
                         </a>
                     {% endif %}
@@ -81,13 +112,12 @@
             </span>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
             {% for product in products %}
                 <article class="bg-slate-900/80 rounded-2xl border border-slate-800/80 hover:border-indigo-500/50 shadow-lg p-3 flex flex-col justify-between transition-all duration-300 group">
 
                     <div class="aspect-square w-full bg-white rounded-xl p-2 flex items-center justify-center relative overflow-hidden shadow-inner">
                         <span class="absolute top-2 left-2 bg-emerald-950/80 border border-emerald-800/80 text-emerald-400 text-[9px] font-bold px-2 py-0.5 rounded-full z-20">{% translate "In Stock" %}</span>
-                        <span class="absolute top-2 right-2 bg-slate-900/90 border border-slate-700/80 text-slate-300 text-[9px] font-bold px-2 py-0.5 rounded-full z-20">{{ product.catalog_code }}</span>
                         {% if product.image %}
                             <img src="{{ product.image.url }}" alt="{{ product.translated_name }}" style="mix-blend-mode: multiply;" class="h-full w-full object-contain object-center group-hover:scale-105 transition-transform duration-300">
                         {% endif %}
@@ -153,4 +183,16 @@
     {% endif %}
 
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.querySelectorAll('.filter-toggle').forEach(function (toggle) {
+    toggle.addEventListener('click', function () {
+      var body = toggle.closest('.filter-group').querySelector('.filter-body');
+      var collapsed = body.classList.toggle('hidden');
+      toggle.querySelector('i').classList.toggle('rotate-180', !collapsed);
+    });
+  });
+</script>
 {% endblock %}
