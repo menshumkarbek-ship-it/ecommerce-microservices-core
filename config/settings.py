@@ -194,7 +194,16 @@ STORAGES = {
             'endpoint_url': os.getenv('R2_ENDPOINT_URL'),
             'custom_domain': os.getenv('R2_PUBLIC_DOMAIN') or None,
             'default_acl': None,
-            'querystring_auth': False,
+            # R2 only accepts SigV4; botocore defaults to SigV2-style
+            # presigned URLs against a custom endpoint without this.
+            'signature_version': 's3v4',
+            # R2's raw API endpoint always requires a signed request, even
+            # for a "public" bucket — actual public URLs only work through
+            # a separate domain (R2.dev or a custom domain). Until
+            # R2_PUBLIC_DOMAIN is set, fall back to presigned URLs so images
+            # work out of the box; switch to plain URLs automatically once
+            # a public domain is configured.
+            'querystring_auth': not os.getenv('R2_PUBLIC_DOMAIN'),
         },
     } if R2_BUCKET_NAME else {
         'BACKEND': 'django.core.files.storage.FileSystemStorage',
