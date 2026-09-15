@@ -1,0 +1,136 @@
+{% extends "shop/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% translate "Sales Report" %} | {{ store_name }}{% endblock %}
+
+{% block content %}
+<div class="product-management max-w-5xl mx-auto my-6 px-4 sm:px-6 space-y-6">
+
+    <!-- Navigation Breadcrumb -->
+    <div class="flex items-center space-x-2 text-xs font-bold text-gray-400 uppercase tracking-wide">
+        <a href="{% url 'shop:product_list' %}" class="hover:text-indigo-600 transition-colors">{% translate "Catalog" %}</a>
+        <span>/</span>
+        <span class="text-indigo-600">{% translate "Sales Report" %}</span>
+    </div>
+
+    <!-- Management Tabs -->
+    <div class="flex items-center gap-2 flex-wrap">
+        <a href="{% url 'shop:create_product' %}" class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-white border border-gray-200/80 text-gray-500 hover:text-indigo-600 transition-colors">{% translate "Products" %}</a>
+        <a href="{% url 'shop:create_category' %}" class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-white border border-gray-200/80 text-gray-500 hover:text-indigo-600 transition-colors">{% translate "Categories" %}</a>
+        <a href="{% url 'shop:manage_contacts' %}" class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-white border border-gray-200/80 text-gray-500 hover:text-indigo-600 transition-colors">{% translate "Contacts" %}</a>
+        <a href="{% url 'shop:manage_about' %}" class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-white border border-gray-200/80 text-gray-500 hover:text-indigo-600 transition-colors">{% translate "About Page" %}</a>
+        <span class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-indigo-600 text-white shadow-md shadow-indigo-600/30">{% translate "Sales Report" %}</span>
+    </div>
+
+    <!-- Month Filter -->
+    <section class="bg-white border border-gray-100 rounded-3xl shadow-sm p-6 sm:p-8">
+        <form method="GET" class="flex flex-wrap items-end gap-3">
+            <div>
+                <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-1.5">{% translate "Month" %}</label>
+                <select name="month" class="bg-gray-50 border border-gray-200/80 rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer">
+                    {% for value, label in months %}
+                        <option value="{{ value }}" {% if value == selected_month %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-1.5">{% translate "Year" %}</label>
+                <select name="year" class="bg-gray-50 border border-gray-200/80 rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer">
+                    {% for y in available_years %}
+                        <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="py-2.5 px-6 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-indigo-600/30">
+                <i class="fa-solid fa-magnifying-glass text-xs"></i> {% translate "View Report" %}
+            </button>
+        </form>
+    </section>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="bg-white border border-gray-100 rounded-3xl shadow-sm p-6">
+            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wide">{% translate "Total Revenue" %}</p>
+            <p class="text-2xl font-black text-gray-950 mt-1">{{ total_revenue }} {% translate "som" %}</p>
+        </div>
+        <div class="bg-white border border-gray-100 rounded-3xl shadow-sm p-6">
+            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wide">{% translate "Items Sold" %}</p>
+            <p class="text-2xl font-black text-gray-950 mt-1">{{ total_count }}</p>
+        </div>
+    </div>
+
+    <!-- Breakdown by Category / Brand -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <section class="bg-white border border-gray-100 rounded-3xl shadow-sm p-6 sm:p-8">
+            <h2 class="text-sm font-black text-gray-950 mb-4">{% translate "By Category" %}</h2>
+            {% if by_category %}
+                <div class="space-y-2">
+                    {% for row in by_category %}
+                        <div class="flex items-center justify-between text-xs border-b border-gray-50 pb-2">
+                            <span class="font-bold text-gray-700">{{ row.category_name }}</span>
+                            <span class="text-gray-400">{{ row.count }} {% translate "pcs" %}</span>
+                            <span class="font-black text-gray-950">{{ row.total }} {% translate "som" %}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-xs text-gray-400 italic">{% translate "No sales in this period." %}</p>
+            {% endif %}
+        </section>
+
+        <section class="bg-white border border-gray-100 rounded-3xl shadow-sm p-6 sm:p-8">
+            <h2 class="text-sm font-black text-gray-950 mb-4">{% translate "By Brand" %}</h2>
+            {% if by_brand %}
+                <div class="space-y-2">
+                    {% for row in by_brand %}
+                        <div class="flex items-center justify-between text-xs border-b border-gray-50 pb-2">
+                            <span class="font-bold text-gray-700">{{ row.brand }}</span>
+                            <span class="text-gray-400">{{ row.count }} {% translate "pcs" %}</span>
+                            <span class="font-black text-gray-950">{{ row.total }} {% translate "som" %}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-xs text-gray-400 italic">{% translate "No sales in this period." %}</p>
+            {% endif %}
+        </section>
+    </div>
+
+    <!-- Sales List -->
+    <section class="bg-white border border-gray-100 rounded-3xl shadow-sm p-6 sm:p-8">
+        <h2 class="text-sm font-black text-gray-950 mb-4">{% translate "Sales in This Period" %}</h2>
+        {% if sales %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs">
+                    <thead>
+                        <tr class="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wide border-b border-gray-100">
+                            <th class="py-2 pr-3">{% translate "Date" %}</th>
+                            <th class="py-2 pr-3">{% translate "Product" %}</th>
+                            <th class="py-2 pr-3">{% translate "Catalog ID" %}</th>
+                            <th class="py-2 pr-3">{% translate "Brand" %}</th>
+                            <th class="py-2 pr-3">{% translate "Category" %}</th>
+                            <th class="py-2 pr-3 text-right">{% translate "Price" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sale in sales %}
+                            <tr class="border-b border-gray-50">
+                                <td class="py-2 pr-3 text-gray-500">{{ sale.sold_at|date:"d M Y" }}</td>
+                                <td class="py-2 pr-3 font-bold text-gray-800">{{ sale.product_name }}</td>
+                                <td class="py-2 pr-3 text-gray-400">{{ sale.catalog_code }}</td>
+                                <td class="py-2 pr-3 text-gray-500">{{ sale.brand }}</td>
+                                <td class="py-2 pr-3 text-gray-500">{{ sale.category_name }}</td>
+                                <td class="py-2 pr-3 text-right font-black text-gray-950">{{ sale.price }} {% translate "som" %}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-xs text-gray-400 italic">{% translate "No sales recorded for this period yet." %}</p>
+        {% endif %}
+    </section>
+
+</div>
+{% endblock %}

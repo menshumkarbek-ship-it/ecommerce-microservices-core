@@ -4,7 +4,7 @@ from django.contrib.auth.models import User, Group
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import Category, Product
+from .models import Category, Product, Sale
 
 
 class StorefrontTests(TestCase):
@@ -201,6 +201,75 @@ class StorefrontTests(TestCase):
         self.assertRedirects(response, reverse('shop:product_list'))
         self.category.refresh_from_db()
         self.assertFalse(self.category.is_featured_in_hero)
+
+    def test_removing_a_product_hides_it_but_keeps_the_row_and_records_a_sale(self):
+        staff = User.objects.create_user(username='manager', password='manager-password-123', is_staff=True)
+        self.client.force_login(staff)
+        product = self.make_product('Phone', 'phone', '250.00')
+
+        self.client.post(reverse('shop:delete_product', args=[product.id]))
+
+        # Gone from the storefront...
+        self.assertFalse(Product.objects.filter(pk=product.pk).exists())
+        self.assertEqual(self.client.get(reverse('shop:product_detail', args=['phone'])).status_code, 404)
+        # ...but the row survives, so the removal is recoverable.
+        product.refresh_from_db()
+        self.assertIsNotNone(product.deleted_at)
+
+        sale = Sale.objects.get(product=product)
+        self.assertEqual(sale.price, Decimal('250.00'))
+        self.assertEqual(sale.product_name, 'Phone')
+
+    def test_restoring_a_product_puts_it_back_and_drops_the_recorded_sale(self):
+        staff = User.objects.create_user(username='manager', password='manager-password-123', is_staff=True)
+        self.client.force_login(staff)
+        product = self.make_product('Phone', 'phone', '250.00')
+        self.client.post(reverse('shop:delete_product', args=[product.id]))
+
+        self.client.post(reverse('shop:restore_product', args=[product.id]))
+
+        self.assertTrue(Product.objects.filter(pk=product.pk).exists())
+        self.assertEqual(self.client.get(reverse('shop:product_detail', args=['phone'])).status_code, 200)
+        # The sale it recorded must go too, or the month's report stays inflated.
+        self.assertEqual(Sale.objects.filter(product=product).count(), 0)
+
+    def test_regular_user_cannot_restore_a_removed_product(self):
+        staff = User.objects.create_user(username='manager', password='manager-password-123', is_staff=True)
+        self.client.force_login(staff)
+        product = self.make_product('Phone', 'phone', '250.00')
+        self.client.post(reverse('shop:delete_product', args=[product.id]))
+        self.client.logout()
+
+        buyer = User.objects.create_user(username='buyer', password='safe-password-123')
+        self.client.force_login(buyer)
+        self.client.post(reverse('shop:restore_product', args=[product.id]))
+
+        product.refresh_from_db()
+        self.assertIsNotNone(product.deleted_at)
+
+    def test_a_removed_product_keeps_its_slug_and_catalog_number_reserved(self):
+        staff = User.objects.create_user(username='manager', password='manager-password-123', is_staff=True)
+        self.client.force_login(staff)
+        removed = self.make_product('Phone', 'phone', '250.00')
+        self.client.post(reverse('shop:delete_product', args=[removed.id]))
+
+        self.client.post(reverse('shop:create_product'), {
+            'category': self.category.id, 'brand': 'Example', 'name': 'Phone',
+            'price': '300.00', 'description': 'A replacement listing.', 'slug': '',
+        })
+
+        replacement = Product.objects.get(price=Decimal('300.00'))
+        self.assertNotEqual(replacement.slug, removed.slug)
+        self.assertNotEqual(replacement.category_number, removed.category_number)
+
+    def test_removed_product_is_absent_from_catalog_and_api(self):
+        staff = User.objects.create_user(username='manager', password='manager-password-123', is_staff=True)
+        self.client.force_login(staff)
+        product = self.make_product('Phone', 'phone', '250.00')
+        self.client.post(reverse('shop:delete_product', args=[product.id]))
+
+        self.assertEqual(self.client.get(reverse('shop:product_list')).context['products'].paginator.count, 0)
+        self.assertEqual(self.client.get('/api/products/').json(), [])
 
     def test_homepage_gets_a_row_for_every_category_with_stock(self):
         headphones = Category.objects.create(name='Headphones', slug='headphones')

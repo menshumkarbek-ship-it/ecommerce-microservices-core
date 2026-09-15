@@ -53,7 +53,9 @@ class ProductCreateForm(forms.ModelForm):
         slug = self.cleaned_data.get('slug')
         name = self.cleaned_data.get('name')
 
-        qs = Product.objects.all()
+        # all_objects: slug is unique across the table, so removed listings
+        # still occupy their slug and must be checked against.
+        qs = Product.all_objects.all()
         if self.instance.pk:
             qs = qs.exclude(pk=self.instance.pk)
 

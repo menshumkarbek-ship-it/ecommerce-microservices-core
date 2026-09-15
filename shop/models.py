@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from .utils import process_no_bg_image, translatable_property
 
@@ -214,6 +215,21 @@ class AboutPageContent(models.Model):
 # 📱 PRODUCT CATALOG & AUTOMATED NO-BG PROCESSOR
 # ==========================================
 
+class AvailableProductManager(models.Manager):
+    """
+    Default manager: hides listings that staff removed from the catalog.
+
+    Removal is a soft delete (see Product.deleted_at), so filtering here
+    rather than at each call site means a forgotten `.filter()` can never
+    leak a removed product back onto the storefront. Use
+    `Product.all_objects` for the places that must still see them —
+    uniqueness checks, the sales history, and the restore flow.
+    """
+
+    def get_queryset(self):
+        return super().get_queryset().filter(deleted_at__isnull=True)
+
+
 class Product(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products')
     brand = models.CharField(max_length=100, db_index=True, help_text="e.g., Apple, Samsung, Asus")
@@ -246,8 +262,19 @@ class Product(models.Model):
     is_sold = models.BooleanField(default=False, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
+    # Set when staff removes the listing from the catalog. The row (and its
+    # photos) are kept so a mis-click is recoverable — there is no shell
+    # access on the deployed host to undo a real delete.
+    deleted_at = models.DateTimeField(null=True, blank=True, db_index=True)
+
+    objects = AvailableProductManager()
+    all_objects = models.Manager()
+
     class Meta:
         ordering = ['-created_at']
+        # Related lookups (Sale.product) and the admin must resolve removed
+        # rows too, so they go through the unfiltered manager.
+        base_manager_name = 'all_objects'
         indexes = [
             models.Index(fields=['is_sold', 'brand']),
             models.Index(fields=['is_sold', '-created_at']),
@@ -271,7 +298,9 @@ class Product(models.Model):
 
     def save(self, *args, **kwargs):
         if self.pk is None and self.category_id:
-            last_number = Product.objects.filter(category_id=self.category_id).aggregate(
+            # all_objects, not objects: a removed listing keeps its number,
+            # and reusing it would trip unique_category_number_per_category.
+            last_number = Product.all_objects.filter(category_id=self.category_id).aggregate(
                 models.Max('category_number')
             )['category_number__max']
             self.category_number = 0 if last_number is None else last_number + 1
@@ -318,3 +347,39 @@ class ProductImage(models.Model):
                 print(f"[IMAGE PROCESSOR NOTICE] Error processing gallery photo background: {exc}")
 
         super().save(*args, **kwargs)
+
+
+# ==========================================
+# 💰 SALES RECORD (for monthly sales reporting)
+# ==========================================
+
+class Sale(models.Model):
+    """
+    A snapshot of one product leaving the catalog as sold, created the
+    moment staff removes it from "Manage Webpage" (shop.views.delete_product).
+    Fields are copied from the product at that moment (not looked up live)
+    so that later edits or deletion of the product never change a past
+    month's sales report.
+    """
+    product = models.ForeignKey(
+        Product, on_delete=models.SET_NULL, null=True, blank=True, related_name='sales',
+        help_text="The catalog listing this sale came from, if it still exists."
+    )
+    product_name = models.CharField(max_length=255)
+    brand = models.CharField(max_length=100, blank=True)
+    category_name = models.CharField(max_length=100, blank=True)
+    catalog_code = models.CharField(max_length=50, blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Price at the moment of the sale.")
+    sold_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    sold_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='recorded_sales'
+    )
+
+    class Meta:
+        ordering = ['-sold_at']
+        indexes = [
+            models.Index(fields=['sold_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.product_name} — {self.price} ({self.sold_at:%Y-%m-%d})"

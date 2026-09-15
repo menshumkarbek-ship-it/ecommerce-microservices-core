@@ -1,14 +1,18 @@
+from datetime import date
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.cache import cache
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Q
+from django.db.models import Q, Sum, Count
+from django.utils import timezone
+from django.utils.dates import MONTHS
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from .models import Product, Category, ProductImage, ContactSettings, AboutPageContent
+from .models import Product, Category, ProductImage, ContactSettings, AboutPageContent, Sale
 from .forms import ProductCreateForm, CategoryCreateForm, ContactSettingsForm, AboutPageContentForm
 
 # Rotating accent colors for the per-category homepage rows, so each
@@ -80,14 +84,19 @@ def product_list(request, category_slug=None):
         cache.set('global_store_categories', categories, 60 * 15)
 
     products_list = Product.objects.filter(is_sold=False).select_related('category').order_by('-id')
-    type_filter = request.GET.get('type') or category_slug
 
-    if type_filter == 'phones':
-        type_filter = 'phone'
-    elif type_filter == 'laptops':
-        type_filter = 'laptop'
-    elif type_filter == 'tablets':
-        type_filter = 'tablet'
+    # The dropdown submits real category slugs, so keep the incoming value
+    # untouched for re-selecting the option and building pagination links;
+    # only `type_filter` below gets rewritten for the query.
+    selected_type = request.GET.get('type') or category_slug or ''
+    type_filter = selected_type
+
+    # Old links used plural slugs that no longer exist as categories. Remap
+    # them only when the value isn't a real slug, otherwise a current slug
+    # like "laptops" would be rewritten to "laptop" and stop matching exactly.
+    legacy_type_aliases = {'phones': 'phone', 'laptops': 'laptop', 'tablets': 'tablet'}
+    if type_filter in legacy_type_aliases and type_filter not in {c.slug for c in categories}:
+        type_filter = legacy_type_aliases[type_filter]
 
     brand_filter = request.GET.get('brand')
     search_query = request.GET.get('search')
@@ -123,7 +132,7 @@ def product_list(request, category_slug=None):
         except ValueError:
             pass
 
-    available_brands = Product.objects.filter(is_sold=False).values_list('brand', flat=True).distinct()
+    available_brands = Product.objects.filter(is_sold=False).order_by('brand').values_list('brand', flat=True).distinct()
 
     # 🔓 Always paginate the full matching catalog (filtered or not) so visitors
     # can scroll through every product instead of being capped to a handful
@@ -141,7 +150,7 @@ def product_list(request, category_slug=None):
         'categories': categories,
         'products': products,
         'available_brands': available_brands,
-        'selected_type': type_filter or '',
+        'selected_type': selected_type,
         'selected_brand': brand_filter or '',
         'min_price': min_price or '',
         'max_price': max_price or '',
@@ -260,6 +269,13 @@ def create_product(request, product_id=None):
     known_brands = Product.objects.exclude(brand='').values_list('brand', flat=True).distinct().order_by('brand')
     gallery_images = product_instance.gallery_images.all() if product_instance else []
 
+    # Recently removed listings, so an accidental removal can be undone from
+    # the same page it happened on. Capped at 10 — this is an undo affordance,
+    # not an archive browser.
+    removed_products = Product.all_objects.filter(
+        deleted_at__isnull=False
+    ).select_related('category').order_by('-deleted_at')[:10]
+
     context = {
         'form': form,
         'product_instance': product_instance,
@@ -267,6 +283,7 @@ def create_product(request, product_id=None):
         'known_brands': known_brands,
         'gallery_images': gallery_images,
         'search_query': search_query,
+        'removed_products': removed_products,
     }
     return render(request, 'shop/product/create.html', context)
 
@@ -275,10 +292,56 @@ def create_product(request, product_id=None):
 @user_passes_test(is_admin_or_manager, login_url='shop:product_list', redirect_field_name=None)
 @require_POST
 def delete_product(request, product_id):
-    product = get_object_or_404(Product, id=product_id)
-    product_name = product.name
-    product.delete()
-    messages.success(request, _('"%(name)s" was removed from the catalog.') % {'name': product_name})
+    product = get_object_or_404(Product.objects.select_related('category'), id=product_id)
+
+    # Removing a listing here means it sold in the physical store — there is
+    # no separate checkout/cart flow — so snapshot it as a Sale, using the
+    # values as they are right now so later edits never change a past
+    # month's sales report.
+    Sale.objects.create(
+        product=product,
+        product_name=product.name,
+        brand=product.brand,
+        category_name=product.category.name,
+        catalog_code=product.catalog_code,
+        price=product.price,
+        sold_by=request.user,
+    )
+
+    # Soft delete: the row and its photos stay, so a mis-click can be undone
+    # from "Recently removed" instead of being gone for good.
+    product.deleted_at = timezone.now()
+    product.save(update_fields=['deleted_at'])
+
+    messages.success(
+        request,
+        _('"%(name)s" was removed from the catalog and recorded as a sale. You can undo this from "Recently removed".')
+        % {'name': product.name},
+    )
+    return redirect('shop:create_product')
+
+
+@login_required
+@user_passes_test(is_admin_or_manager, login_url='shop:product_list', redirect_field_name=None)
+@require_POST
+def restore_product(request, product_id):
+    """
+    Undo a removal: puts the listing back in the catalog and drops the Sale
+    row it created, so the monthly report doesn't keep counting a sale that
+    never happened.
+    """
+    product = get_object_or_404(Product.all_objects, id=product_id, deleted_at__isnull=False)
+
+    # Undo the sale this removal recorded — the most recent one for the
+    # product, since a listing can be removed and restored more than once.
+    last_sale = Sale.objects.filter(product=product).order_by('-sold_at', '-id').first()
+    if last_sale:
+        last_sale.delete()
+
+    product.deleted_at = None
+    product.save(update_fields=['deleted_at'])
+
+    messages.success(request, _('"%(name)s" is back in the catalog.') % {'name': product.name})
     return redirect('shop:create_product')
 
 
@@ -409,3 +472,58 @@ def manage_about(request):
     ]
 
     return render(request, 'shop/product/about_settings.html', {'form': form, 'about_lang_fields': about_lang_fields})
+
+
+@login_required
+@user_passes_test(is_admin_or_manager, login_url='shop:product_list', redirect_field_name=None)
+def sales_report(request):
+    """
+    Monthly sales report built from the Sale records created automatically
+    whenever a product is removed from the catalog (see delete_product) —
+    that removal is how a real-world sale gets recorded, since this store
+    has no separate checkout flow.
+    """
+    today = date.today()
+    try:
+        year = int(request.GET.get('year', today.year))
+    except (TypeError, ValueError):
+        year = today.year
+    try:
+        month = int(request.GET.get('month', today.month))
+    except (TypeError, ValueError):
+        month = today.month
+    if not 1 <= month <= 12:
+        month = today.month
+
+    month_sales = Sale.objects.filter(sold_at__year=year, sold_at__month=month).select_related('sold_by')
+
+    totals = month_sales.aggregate(total_revenue=Sum('price'), total_count=Count('id'))
+
+    by_category = month_sales.values('category_name').annotate(
+        total=Sum('price'), count=Count('id')
+    ).order_by('-total')
+
+    by_brand = month_sales.values('brand').annotate(
+        total=Sum('price'), count=Count('id')
+    ).order_by('-total')
+
+    # Years to offer in the filter: every year that has at least one sale,
+    # plus the current year so the dropdown is never empty on a fresh store.
+    sale_years = set(Sale.objects.dates('sold_at', 'year').values_list('sold_at__year', flat=True))
+    sale_years.add(today.year)
+    available_years = sorted(sale_years, reverse=True)
+
+    months = sorted(MONTHS.items())
+
+    context = {
+        'sales': month_sales,
+        'total_revenue': totals['total_revenue'] or 0,
+        'total_count': totals['total_count'] or 0,
+        'by_category': by_category,
+        'by_brand': by_brand,
+        'selected_year': year,
+        'selected_month': month,
+        'available_years': available_years,
+        'months': months,
+    }
+    return render(request, 'shop/product/sales_report.html', context)

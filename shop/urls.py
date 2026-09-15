@@ -30,12 +30,14 @@ urlpatterns = [
     path('management/product/add/', views.create_product, name='create_product'),
     path('management/product/add/<int:product_id>/', views.create_product, name='update_product'),
     path('management/product/<int:product_id>/delete/', views.delete_product, name='delete_product'),
+    path('management/product/<int:product_id>/restore/', views.restore_product, name='restore_product'),
     path('management/product/image/<int:image_id>/delete/', views.delete_product_image, name='delete_product_image'),
     path('management/category/add/', views.create_category, name='create_category'),
     path('management/category/<int:category_id>/toggle-hero/', views.toggle_category_hero, name='toggle_category_hero'),
     path('management/category/<int:category_id>/toggle-newest/', views.toggle_category_newest, name='toggle_category_newest'),
     path('management/contacts/', views.manage_contacts, name='manage_contacts'),
     path('management/about/', views.manage_about, name='manage_about'),
+    path('management/sales/', views.sales_report, name='sales_report'),
 
     # --- Auxiliary Pages ---
     path('pages/about-us/', views.about_us, name='about_us'),

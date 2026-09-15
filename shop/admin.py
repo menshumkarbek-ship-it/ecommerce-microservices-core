@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.shortcuts import redirect
 from django.urls import reverse
-from .models import Category, Product, ProductImage, ContactSettings, AboutPageContent
+from .models import Category, Product, ProductImage, ContactSettings, AboutPageContent, Sale
 
 
 class ProductImageInline(admin.TabularInline):
@@ -47,6 +47,19 @@ class ContactSettingsAdmin(admin.ModelAdmin):
         # instance's edit form (creating it on first visit if needed).
         obj = ContactSettings.get_solo()
         return redirect(reverse('admin:shop_contactsettings_change', args=[obj.pk]))
+
+
+@admin.register(Sale)
+class SaleAdmin(admin.ModelAdmin):
+    list_display = ('product_name', 'brand', 'category_name', 'price', 'sold_at', 'sold_by')
+    list_filter = ('category_name', 'brand', 'sold_at')
+    search_fields = ('product_name', 'brand', 'catalog_code')
+    date_hierarchy = 'sold_at'
+
+    def has_add_permission(self, request):
+        # Sales are only ever created automatically when a product is
+        # removed from the catalog, never entered by hand.
+        return False
 
 
 @admin.register(AboutPageContent)

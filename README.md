@@ -72,6 +72,39 @@ python manage.py makemigrations --check
 
 The public Django API and schema documentation are available at `/api/`, `/api/schema/`, and `/api/docs/`.
 
+Tests also run automatically on every push and pull request to `main` (see `.github/workflows/ci.yml`),
+against PostgreSQL and the Python version pinned in `runtime.txt`.
+
+## Removing products is reversible
+
+Removing a listing from **Manage Webpage** is how a sale gets recorded: it writes a `Sale` row
+(a snapshot of the name, brand, category, catalog code and price at that moment, which is what the
+monthly report reads) and then *soft*-deletes the product — the row and its photos are kept and
+`deleted_at` is stamped instead.
+
+The listing disappears from the storefront, the catalog and the API immediately, but it stays under
+**Recently removed** on the management page for as long as it is among the 10 most recent removals.
+Restoring it puts it back and deletes the sale it recorded, so the month's revenue is not left
+inflated by a mis-click.
+
+Because the row survives, a removed product keeps its slug and its per-category `#ID` reserved —
+a replacement listing with the same name gets `-2` appended rather than colliding.
+
+## Deploying safely
+
+`build.sh` runs `migrate` against the production database on every deploy. There is no automatic
+backup in front of it, so before shipping a migration that drops or alters a column:
+
+1. **Take a backup.** `pg_dump "$DATABASE_URL" > backup-$(date +%F).sql`
+2. **Verify it is non-empty** before relying on it: `wc -l backup-*.sql`
+3. **Restore path**, if a migration goes wrong: `psql "$DATABASE_URL" < backup-YYYY-MM-DD.sql`
+4. **Roll back one migration** without a full restore, when the migration is reversible:
+   `python manage.py migrate shop <previous_migration_name>`
+
+> Enable your host's own scheduled database backups as well — the commands above only help if
+> someone remembers to run them. Check the retention window your plan actually provides; on free
+> tiers it is often short or absent.
+
 ## Configuration
 
 Never commit `.env`. Use `.env.example` as the template. In production, provide a strong `SECRET_KEY`, set `DEBUG=False`, configure `ALLOWED_HOSTS`, and use a real email backend if you re-introduce transactional email in the future.
