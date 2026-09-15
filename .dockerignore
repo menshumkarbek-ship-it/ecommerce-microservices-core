@@ -6,5 +6,4 @@ __pycache__
 *.pyc
 .env
 media
-invoice_service/generated_invoices
 staticfiles

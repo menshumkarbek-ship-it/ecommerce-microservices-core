@@ -1,12 +1,12 @@
 {% extends "shop/base.html" %}
 {% load i18n %}
 
-{% block title %}{{ product.name }} | {% translate "Specifications" %}{% endblock %}
+{% block title %}{{ product.translated_name }} | {% translate "Specifications" %}{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto px-6 py-12 min-h-[70vh]">
+<div class="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 min-h-[70vh]">
     <a href="{% url 'shop:product_detail' product.slug %}" class="text-sm font-bold text-indigo-400 hover:text-indigo-300">&larr; {% translate "Back to product" %}</a>
-    <h1 class="mt-5 text-3xl font-black text-white">{{ product.brand }} {{ product.name }}</h1>
+    <h1 class="mt-5 text-3xl font-black text-white">{{ product.brand }} {{ product.translated_name }}</h1>
     <div class="mt-6 rounded-2xl border border-slate-800 bg-slate-900/80 p-6">
         {% if product.specifications %}
             <dl class="divide-y divide-slate-800 text-sm">

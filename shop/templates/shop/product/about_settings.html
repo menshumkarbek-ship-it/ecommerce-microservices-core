@@ -1,0 +1,157 @@
+{% extends "shop/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% translate "About Page Settings" %} | {{ store_name }}{% endblock %}
+
+{% block content %}
+<div class="product-management max-w-4xl mx-auto my-6 px-4 sm:px-6 space-y-6">
+
+    <!-- Navigation Breadcrumb -->
+    <div class="flex items-center space-x-2 text-xs font-bold text-gray-400 uppercase tracking-wide">
+        <a href="{% url 'shop:product_list' %}" class="hover:text-indigo-600 transition-colors">{% translate "Catalog" %}</a>
+        <span>/</span>
+        <span class="text-indigo-600">{% translate "About Page Settings" %}</span>
+    </div>
+
+    <!-- Management Tabs -->
+    <div class="flex items-center gap-2 flex-wrap">
+        <a href="{% url 'shop:create_product' %}" class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-white border border-gray-200/80 text-gray-500 hover:text-indigo-600 transition-colors">{% translate "Products" %}</a>
+        <a href="{% url 'shop:create_category' %}" class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-white border border-gray-200/80 text-gray-500 hover:text-indigo-600 transition-colors">{% translate "Categories" %}</a>
+        <a href="{% url 'shop:manage_contacts' %}" class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-white border border-gray-200/80 text-gray-500 hover:text-indigo-600 transition-colors">{% translate "Contacts" %}</a>
+        <span class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-indigo-600 text-white shadow-md shadow-indigo-600/30">{% translate "About Page" %}</span>
+    </div>
+
+    <!-- About Page Form -->
+    <section class="bg-white border border-gray-100 rounded-3xl shadow-sm p-6 sm:p-8">
+        <div class="mb-6 pb-4 border-b border-gray-50">
+            <h1 class="text-xl font-black text-gray-950">{% translate "About Us Page" %}</h1>
+            <p class="text-xs text-gray-400 mt-1">
+                {% translate "Write about your shop and your market here — this is what customers see on the public About page." %}
+            </p>
+        </div>
+
+        {% if form.errors %}
+        <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs font-semibold space-y-1">
+            <p class="font-bold text-sm">⚠️ {% translate "Please correct errors below:" %}</p>
+            <ul class="list-disc list-inside space-y-0.5">
+                {% for field, errors in form.errors.items %}
+                    <li><strong>{{ field|title }}:</strong> {{ errors|striptags }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data" class="space-y-8">
+            {% csrf_token %}
+
+            <!-- Language switcher: the whole form below has one field set per -->
+            <!-- language. Fill in whichever languages you want; a blank field -->
+            <!-- falls back to the English version on the public page. -->
+            <div class="lang-tabs flex items-center gap-1.5 p-1 bg-gray-50 rounded-xl w-fit" data-group="about-page">
+                <button type="button" class="lang-tab-btn px-4 py-1.5 rounded-lg text-xs font-black bg-indigo-600 text-white" data-lang="en">EN</button>
+                <button type="button" class="lang-tab-btn px-4 py-1.5 rounded-lg text-xs font-black bg-gray-100 text-gray-500" data-lang="ru">RU</button>
+                <button type="button" class="lang-tab-btn px-4 py-1.5 rounded-lg text-xs font-black bg-gray-100 text-gray-500" data-lang="ky">KY</button>
+            </div>
+
+            {% for lang, name_field, badge_field, heading_field, intro_field, visit_heading_field, visit_text_field, addr1_field, addr2_field, cta_heading_field, cta_text_field in about_lang_fields %}
+            <div class="lang-field space-y-8 {% if not forloop.first %}hidden{% endif %}" data-group="about-page" data-lang="{{ lang }}">
+
+                <!-- Site Identity -->
+                <div class="space-y-4">
+                    <h2 class="text-[11px] font-black uppercase tracking-wider text-indigo-600">{% translate "Site Identity" %}</h2>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">{% translate "Store / Market Name" %}</label>
+                        {{ name_field }}
+                        {% if forloop.first %}<p class="text-[10px] text-gray-400 mt-1">{% translate "Shown in the navbar, browser tab, and footer across the whole site." %}</p>{% endif %}
+                    </div>
+                </div>
+
+                <!-- Hero / Story -->
+                <div class="space-y-4">
+                    <h2 class="text-[11px] font-black uppercase tracking-wider text-indigo-600">{% translate "Page Header" %}</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">{% translate "Badge Text" %}</label>
+                            {{ badge_field }}
+                            {% if forloop.first %}<p class="text-[10px] text-gray-400 mt-1">{% translate "Small pill above the heading. Leave blank to hide it." %}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">{% translate "Page Heading" %}</label>
+                            {{ heading_field }}
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">{% translate "Your Story" %}</label>
+                        {{ intro_field }}
+                        {% if forloop.first %}<p class="text-[10px] text-gray-400 mt-1">{% translate "Tell customers about your shop and your market — this is the main paragraph on the page." %}</p>{% endif %}
+                    </div>
+                </div>
+
+                <!-- Visit Us -->
+                <div class="space-y-4 pt-4 border-t border-gray-50">
+                    <h2 class="text-[11px] font-black uppercase tracking-wider text-indigo-600">{% translate "Visit Us Section" %}</h2>
+                    {% if forloop.first %}<p class="text-[10px] text-gray-400 -mt-2">{% translate "Leave all fields in this section blank to hide it entirely." %}</p>{% endif %}
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">{% translate "Section Heading" %}</label>
+                        {{ visit_heading_field }}
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">{% translate "Section Text" %}</label>
+                        {{ visit_text_field }}
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">{% translate "Address Line 1" %}</label>
+                            {{ addr1_field }}
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">{% translate "Address Line 2" %}</label>
+                            {{ addr2_field }}
+                        </div>
+                    </div>
+                    {% if forloop.first %}
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">{% translate "Store Photo" %}</label>
+                        {{ form.store_image }}
+                        {% if form.instance.store_image %}
+                            <div class="mt-3 w-40 h-28 rounded-xl overflow-hidden border border-gray-200/80">
+                                <img src="{{ form.instance.store_image.url }}" alt="{% translate 'Current store photo' %}" class="w-full h-full object-cover">
+                            </div>
+                        {% endif %}
+                        <p class="text-[10px] text-gray-400 mt-1">{% translate "Optional. If left empty, a generic map graphic is shown instead." %}</p>
+                        <p class="text-[10px] text-gray-400 mt-1">{% translate "The store photo is shared across all languages." %}</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Call to Action -->
+                <div class="space-y-4 pt-4 border-t border-gray-50">
+                    <h2 class="text-[11px] font-black uppercase tracking-wider text-indigo-600">{% translate "Call to Action Banner" %}</h2>
+                    {% if forloop.first %}<p class="text-[10px] text-gray-400 -mt-2">{% translate "Leave both fields blank to hide this banner." %}</p>{% endif %}
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">{% translate "Banner Heading" %}</label>
+                        {{ cta_heading_field }}
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">{% translate "Banner Text" %}</label>
+                        {{ cta_text_field }}
+                    </div>
+                </div>
+
+            </div>
+            {% endfor %}
+
+            <div class="pt-4 border-t border-gray-100 flex items-center justify-between">
+                <a href="{% url 'shop:about_us' %}" target="_blank" class="inline-flex items-center gap-1.5 text-[10px] font-bold text-indigo-600 hover:text-indigo-500 transition-colors">
+                    {% translate "Open About page" %} <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                </a>
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-7 py-3 rounded-xl transition-all shadow-md shadow-indigo-600/30 active:scale-95 uppercase tracking-wider">
+                    <i class="fa-solid fa-floppy-disk"></i> {% translate "Save About Page" %}
+                </button>
+            </div>
+        </form>
+    </section>
+
+</div>
+{% endblock %}

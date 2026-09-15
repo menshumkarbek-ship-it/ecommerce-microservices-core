@@ -25,8 +25,24 @@ if not SECRET_KEY:
 # ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', '').split(',') if host.strip()]
 ALLOWED_HOSTS = ['*']
 
+# 🔒 Django admin is mounted at a non-default path (instead of /admin/) to keep
+# it off the beaten path for bots/scanners. Override via .env if needed; the
+# trailing slash matters since it's used directly in a urls.py path().
+ADMIN_URL = os.getenv('ADMIN_URL', 'system-console/').strip().strip('/') + '/'
+
+# The storefront has no customer accounts/login of its own (view-only catalog).
+# Staff/managers authenticate through Django's admin login form, wherever
+# ADMIN_URL happens to mount it, so @login_required views (the in-app product/
+# category/contact management panel) send anonymous visitors there and back.
+LOGIN_URL = 'admin:login'
+
+# Send staff back to the storefront home after signing out, instead of
+# rendering Django admin's own (jazzmin-styled, visually inconsistent)
+# "logged out" confirmation page.
+LOGOUT_REDIRECT_URL = 'shop:home'
+
 INSTALLED_APPS = [
-    'jazzmin',
+    'unfold',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -59,7 +75,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -67,7 +83,9 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.i18n',  # 🌐 Language context
-                'shop.context_processors.user_profile',
+                'shop.context_processors.is_admin',
+                'shop.context_processors.contact_settings',
+                'shop.context_processors.site_identity',
             ],
         },
     },
@@ -151,18 +169,6 @@ MEDIA_URL = '/media/'
 
 # Path where media files are physically stored on your computer
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-# Session key for the shopping cart
-CART_SESSION_ID = 'techvault_cart'
-
-# Gmail SMTP settings are supplied through environment variables.
-EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
-EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').strip().lower() == 'true'
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
 
 # ==========================================
 # 📑 DRF & API DOCUMENTATION SETTINGS

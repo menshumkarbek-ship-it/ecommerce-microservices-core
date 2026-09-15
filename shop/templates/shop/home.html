@@ -2,46 +2,53 @@
 {% load static %}
 {% load i18n %}
 
-{% block title %}TechVault | {% translate "Home & Top Picks" %}{% endblock %}
+{% block title %}{{ store_name }} | {% translate "Home & Top Picks" %}{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+<style>
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
 
-<div class="max-w-7xl mx-auto px-6 py-8 space-y-16">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-10 sm:space-y-16">
 
-  <!-- 🌟 INTERACTIVE 3-SLIDE HERO ADVERTISEMENT CAROUSEL -->
+  <!-- 🌟 HERO ANNOUNCEMENT CAROUSEL (fully admin-controlled: each slide is a -->
+  <!-- category an admin marked "featured in hero" from the Categories page, -->
+  <!-- showing that category's newest in-stock product) -->
+  {% if hero_slides %}
   <section class="relative overflow-hidden rounded-3xl bg-slate-950 border border-slate-800/80 shadow-2xl">
 
     <div class="swiper heroSwiper w-full">
       <div class="swiper-wrapper">
 
-        <!-- Slide 1: Main Flagship Smartphone -->
-        {% if hero_product %}
+        {% for slide in hero_slides %}
         <div class="swiper-slide text-white p-8 sm:p-14 relative">
-          <div class="absolute top-1/2 left-1/4 -translate-y-1/2 w-96 h-96 bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none"></div>
+          <div class="absolute top-1/2 left-1/4 -translate-y-1/2 w-96 h-96 bg-{{ slide.accent }}-600/20 rounded-full blur-[120px] pointer-events-none"></div>
           <div class="absolute -bottom-20 -right-20 w-96 h-96 bg-purple-600/20 rounded-full blur-[120px] pointer-events-none"></div>
 
           <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div class="lg:col-span-7 space-y-6 text-left">
-              <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span> {% translate "Flagship Showcase" %}
+              <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-{{ slide.accent }}-500/10 text-{{ slide.accent }}-400 border border-{{ slide.accent }}-500/20">
+                <span class="w-2 h-2 rounded-full bg-{{ slide.accent }}-400 animate-pulse"></span>
+                {% blocktranslate with name=slide.category.translated_name %}New In {{ name }}{% endblocktranslate %}
               </span>
 
               <h1 class="text-4xl sm:text-6xl font-black tracking-tight text-white leading-tight">
-                {{ hero_product.brand }} <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-sky-300 to-purple-400">{{ hero_product.name }}</span>
+                {{ slide.product.brand }} <span class="text-transparent bg-clip-text bg-gradient-to-r from-{{ slide.accent }}-400 via-sky-300 to-purple-400">{{ slide.product.translated_name }}</span>
               </h1>
 
               <p class="text-slate-400 text-base sm:text-lg max-w-xl leading-relaxed line-clamp-3">
-                {{ hero_product.description|default:"Experience unprecedented performance, flagship engineering, and seamless ecosystem connectivity." }}
+                {% if slide.product.translated_description %}{{ slide.product.translated_description }}{% else %}{% translate "Explore our latest arrival." %}{% endif %}
               </p>
 
               <div class="flex flex-wrap items-center gap-6 pt-2">
                 <div class="bg-slate-900/80 backdrop-blur-md px-5 py-2.5 rounded-2xl border border-slate-800">
                   <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">{% translate "Special Price" %}</span>
-                  <span class="text-3xl font-black text-emerald-400">${{ hero_product.price }}</span>
+                  <span class="text-3xl font-black text-emerald-400">{{ slide.product.price }} {% translate "som" %}</span>
                 </div>
 
-                <a href="{% url 'shop:product_detail' hero_product.slug %}" class="inline-flex items-center gap-3 px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm rounded-2xl transition-all shadow-xl shadow-indigo-600/30 hover:scale-105">
+                <a href="{% url 'shop:product_detail' slide.product.slug %}" class="inline-flex items-center gap-3 px-8 py-4 bg-{{ slide.accent }}-600 hover:bg-{{ slide.accent }}-500 text-white font-bold text-sm rounded-2xl transition-all shadow-xl shadow-{{ slide.accent }}-600/30 hover:scale-105">
                   <span>{% translate "Explore Device" %}</span>
                   <i class="fa-solid fa-arrow-right text-xs"></i>
                 </a>
@@ -49,119 +56,15 @@
             </div>
 
             <div class="lg:col-span-5 flex justify-center items-center relative py-6">
-              {% if hero_product.image %}
+              {% if slide.product.image %}
                 <div class="w-full max-w-sm aspect-square flex items-center justify-center p-6 relative z-10 bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
-                  <img src="{{ hero_product.image.url }}" alt="{{ hero_product.name }}" class="h-full w-full object-contain object-center hover:scale-105 transition-transform duration-500">
+                  <img src="{{ slide.product.image.url }}" alt="{{ slide.product.translated_name }}" class="h-full w-full object-contain object-center hover:scale-105 transition-transform duration-500">
                 </div>
               {% endif %}
             </div>
           </div>
         </div>
-        {% endif %}
-
-        <!-- Slide 2: Dynamic Laptop Promotion Slide -->
-        <div class="swiper-slide text-white p-8 sm:p-14 relative">
-          <div class="absolute top-1/2 right-1/4 -translate-y-1/2 w-96 h-96 bg-cyan-600/20 rounded-full blur-[120px] pointer-events-none"></div>
-          <div class="absolute -bottom-20 -left-20 w-96 h-96 bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none"></div>
-
-          <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            <div class="lg:col-span-7 space-y-6 text-left">
-              <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span> {% translate "High-Performance Workstations" %}
-              </span>
-
-              <h1 class="text-4xl sm:text-6xl font-black tracking-tight text-white leading-tight">
-                {{ laptop_promo.brand|default:"Pro" }} <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-indigo-400">{{ laptop_promo.name|default:"Laptops Collection" }}</span>
-              </h1>
-
-              <p class="text-slate-400 text-base sm:text-lg max-w-xl leading-relaxed line-clamp-3">
-                {{ laptop_promo.description|default:"Experience desktop-class power, stunning displays, and all-day battery life." }}
-              </p>
-
-              <div class="flex flex-wrap items-center gap-6 pt-2">
-                <div class="bg-slate-900/80 backdrop-blur-md px-5 py-2.5 rounded-2xl border border-slate-800">
-                  <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">{% translate "Special Price" %}</span>
-                  <span class="text-3xl font-black text-emerald-400">{% if laptop_promo %}${{ laptop_promo.price }}{% else %}$999+{% endif %}</span>
-                </div>
-
-                {% if laptop_promo %}
-                  <a href="{% url 'shop:product_detail' laptop_promo.slug %}" class="inline-flex items-center gap-3 px-8 py-4 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-sm rounded-2xl transition-all shadow-xl shadow-cyan-600/30 hover:scale-105">
-                    <span>{% translate "Explore Laptop" %}</span>
-                    <i class="fa-solid fa-arrow-right text-xs"></i>
-                  </a>
-                {% else %}
-                  <a href="{% url 'shop:product_list' %}" class="inline-flex items-center gap-3 px-8 py-4 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-sm rounded-2xl transition-all shadow-xl shadow-cyan-600/30 hover:scale-105">
-                    <span>{% translate "Browse Catalog" %}</span>
-                    <i class="fa-solid fa-arrow-right text-xs"></i>
-                  </a>
-                {% endif %}
-              </div>
-            </div>
-
-            <div class="lg:col-span-5 flex justify-center items-center relative py-6">
-              {% if laptop_promo and laptop_promo.image %}
-                <div class="w-full max-w-sm aspect-square flex items-center justify-center p-6 relative z-10 bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
-                  <img src="{{ laptop_promo.image.url }}" alt="{{ laptop_promo.name }}" class="h-full w-full object-contain object-center hover:scale-105 transition-transform duration-500">
-                </div>
-              {% else %}
-                <div class="w-full max-w-sm aspect-square flex items-center justify-center p-6 bg-slate-900 rounded-3xl shadow-2xl border border-slate-800 text-center">
-                </div>
-              {% endif %}
-            </div>
-          </div>
-        </div>
-
-        <!-- Slide 3: Dynamic Tablet Promotion Slide -->
-        <div class="swiper-slide text-white p-8 sm:p-14 relative">
-          <div class="absolute bottom-0 left-1/3 w-96 h-96 bg-emerald-600/20 rounded-full blur-[120px] pointer-events-none"></div>
-          <div class="absolute top-10 right-10 w-96 h-96 bg-teal-600/20 rounded-full blur-[120px] pointer-events-none"></div>
-
-          <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            <div class="lg:col-span-7 space-y-6 text-left">
-              <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> {% translate "Ultimate Portability" %}
-              </span>
-
-              <h1 class="text-4xl sm:text-6xl font-black tracking-tight text-white leading-tight">
-                {{ tablet_promo.brand|default:"Sleek" }} <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-green-300 to-teal-400">{{ tablet_promo.name|default:"Tablets & Pads" }}</span>
-              </h1>
-
-              <p class="text-slate-400 text-base sm:text-lg max-w-xl leading-relaxed line-clamp-3">
-                {{ tablet_promo.description|default:"Unleash your creativity on vivid canvases with ultra-responsive pen support." }}
-              </p>
-
-              <div class="flex flex-wrap items-center gap-6 pt-2">
-                <div class="bg-slate-900/80 backdrop-blur-md px-5 py-2.5 rounded-2xl border border-slate-800">
-                  <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">{% translate "Special Price" %}</span>
-                  <span class="text-3xl font-black text-emerald-400">{% if tablet_promo %}${{ tablet_promo.price }}{% else %}$499+{% endif %}</span>
-                </div>
-
-                {% if tablet_promo %}
-                  <a href="{% url 'shop:product_detail' tablet_promo.slug %}" class="inline-flex items-center gap-3 px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-2xl transition-all shadow-xl shadow-emerald-600/30 hover:scale-105">
-                    <span>{% translate "Explore Tablet" %}</span>
-                    <i class="fa-solid fa-arrow-right text-xs"></i>
-                  </a>
-                {% else %}
-                  <a href="{% url 'shop:product_list' %}" class="inline-flex items-center gap-3 px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-2xl transition-all shadow-xl shadow-emerald-600/30 hover:scale-105">
-                    <span>{% translate "Browse Catalog" %}</span>
-                    <i class="fa-solid fa-arrow-right text-xs"></i>
-                  </a>
-                {% endif %}
-              </div>
-            </div>
-
-            <div class="lg:col-span-5 flex justify-center items-center relative py-6">
-              {% if tablet_promo and tablet_promo.image %}
-                <div class="w-full max-w-sm aspect-square flex items-center justify-center p-6 relative z-10 bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
-                  <img src="{{ tablet_promo.image.url }}" alt="{{ tablet_promo.name }}" class="h-full w-full object-contain object-center hover:scale-105 transition-transform duration-500">
-                </div>
-              {% else %}
-                <div class="w-full max-w-sm aspect-square flex items-center justify-center p-6 bg-slate-900 rounded-3xl shadow-2xl border border-slate-800 text-center">
-                </div>
-              {% endif %}
-            </div>
-          </div>
-        </div>
+        {% endfor %}
 
       </div>
 
@@ -170,170 +73,67 @@
       <div class="swiper-button-prev !w-11 !h-11 bg-slate-900/40 hover:bg-slate-900/80 backdrop-blur-md border border-white/10 rounded-full shadow-lg !text-white/70 hover:!text-white after:!text-xs transition-all duration-300 !left-6"></div>
     </div>
   </section>
+  {% endif %}
 
 
-  <!-- 📱 PHONES SHOWCASE SECTION -->
+  <!-- 🆕 PER-CATEGORY "NEWEST IN" SLIDESHOWS (fully data-driven: every -->
+  <!-- category with stock gets its own horizontally-scrollable row here, -->
+  <!-- including new ones a seller adds, e.g. Headphones or Powerbanks) -->
+  {% for section in category_sections %}
   <section class="space-y-6">
     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
       <h2 class="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-        {% translate "Phones Top Picks" %}
+        {% blocktranslate with name=section.category.translated_name %}Newest In {{ name }}{% endblocktranslate %}
       </h2>
-      <a href="{% url 'shop:product_list' %}?type=phones" class="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors">{% translate "View All Phones" %} &rarr;</a>
+      <a href="{% url 'shop:product_list_by_category' section.category.slug %}" class="text-xs font-bold text-{{ section.accent }}-400 hover:text-{{ section.accent }}-300 transition-colors">{% translate "View All" %} &rarr;</a>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-      {% for product in phones_top_picks %}
-      <article class="bg-slate-900/80 rounded-2xl border border-slate-800/80 hover:border-indigo-500/50 shadow-lg p-3 flex flex-col justify-between transition-all duration-300 group">
+    <div class="no-scrollbar flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth">
+      {% for product in section.products %}
+      <article class="snap-start shrink-0 w-44 sm:w-52 bg-slate-900/80 rounded-2xl border border-slate-800/80 hover:border-{{ section.accent }}-500/50 shadow-lg p-3 flex flex-col justify-between transition-all duration-300 group">
         <div class="aspect-square w-full p-2 flex items-center justify-center relative bg-white rounded-xl overflow-hidden shadow-inner">
-          <span class="absolute top-2 left-2 px-2 py-0.5 bg-slate-900 text-indigo-400 font-black text-[9px] rounded uppercase tracking-wider z-20">
+          <span class="absolute top-2 left-2 px-2 py-0.5 bg-slate-900 text-{{ section.accent }}-400 font-black text-[9px] rounded uppercase tracking-wider z-20">
             {{ product.brand }}
           </span>
+          <span class="absolute top-2 right-2 px-2 py-0.5 bg-slate-900/90 border border-slate-700/80 text-slate-300 font-bold text-[9px] rounded z-20">
+            {{ product.catalog_code }}
+          </span>
           {% if product.image %}
-            <img src="{{ product.image.url }}" alt="{{ product.name }}" style="mix-blend-mode: multiply;" class="h-full w-full object-contain object-center group-hover:scale-105 transition-transform duration-300">
-          {% else %}
+            <img src="{{ product.image.url }}" alt="{{ product.translated_name }}" style="mix-blend-mode: multiply;" class="h-full w-full object-contain object-center group-hover:scale-105 transition-transform duration-300">
           {% endif %}
         </div>
         <div class="mt-3 space-y-1">
-          <span class="text-[9px] font-black uppercase text-indigo-400 tracking-wider">{{ product.brand }}</span>
+          <span class="text-[9px] font-black uppercase text-{{ section.accent }}-400 tracking-wider">{{ product.brand }}</span>
           <h3 class="text-xs font-bold text-slate-100 truncate">
-            <a href="{% url 'shop:product_detail' product.slug %}" class="hover:text-indigo-400 transition-colors">{{ product.name }}</a>
+            <a href="{% url 'shop:product_detail' product.slug %}" class="hover:text-{{ section.accent }}-400 transition-colors">{{ product.translated_name }}</a>
           </h3>
         </div>
         <div class="space-y-2 pt-2 border-t border-slate-800 mt-2">
           <div class="flex items-center justify-between">
-            <span class="text-base font-black text-white">${{ product.price }}</span>
+            <span class="text-base font-black text-white">{{ product.price }} {% translate "som" %}</span>
           </div>
-          <div class="grid grid-cols-2 gap-1.5">
-            <a href="{% url 'shop:product_detail' product.slug %}" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center">
-              <span>{% translate "Details" %}</span>
-            </a>
-            <form action="{% url 'shop:cart_add' product.id %}" method="POST" class="w-full">
-              {% csrf_token %}
-              <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-md shadow-indigo-600/20 flex items-center justify-center gap-1">
-                <i class="fa-solid fa-cart-plus text-[10px]"></i>
-                <span>{% translate "Cart" %}</span>
-              </button>
-            </form>
-          </div>
+          <a href="{% url 'shop:product_detail' product.slug %}" class="w-full py-2 bg-{{ section.accent }}-600 hover:bg-{{ section.accent }}-500 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-md shadow-{{ section.accent }}-600/20 flex items-center justify-center">
+            <span>{% translate "View Details" %}</span>
+          </a>
         </div>
       </article>
-      {% empty %}
-      <div class="col-span-full text-center text-slate-500 py-6 text-xs">{% translate "No phones available." %}</div>
       {% endfor %}
     </div>
   </section>
-
-
-  <!-- 💻 LAPTOPS SHOWCASE SECTION -->
-  <section class="space-y-6">
-    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-      <h2 class="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-        {% translate "Laptops Top Picks" %}
-      </h2>
-      <a href="{% url 'shop:product_list' %}?type=laptops" class="text-xs font-bold text-cyan-400 hover:text-cyan-300 transition-colors">{% translate "View All Laptops" %} &rarr;</a>
-    </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-      {% for product in laptops_top_picks %}
-      <article class="bg-slate-900/80 rounded-2xl border border-slate-800/80 hover:border-cyan-500/50 shadow-lg p-3 flex flex-col justify-between transition-all duration-300 group">
-        <div class="aspect-square w-full p-2 flex items-center justify-center relative bg-white rounded-xl overflow-hidden shadow-inner">
-          <span class="absolute top-2 left-2 px-2 py-0.5 bg-slate-900 text-cyan-400 font-black text-[9px] rounded uppercase tracking-wider z-20">
-            {{ product.brand }}
-          </span>
-          {% if product.image %}
-            <img src="{{ product.image.url }}" alt="{{ product.name }}" style="mix-blend-mode: multiply;" class="h-full w-full object-contain object-center group-hover:scale-105 transition-transform duration-300">
-          {% else %}
-          {% endif %}
-        </div>
-        <div class="mt-3 space-y-1">
-          <span class="text-[9px] font-black uppercase text-cyan-400 tracking-wider">{{ product.brand }}</span>
-          <h3 class="text-xs font-bold text-slate-100 truncate">
-            <a href="{% url 'shop:product_detail' product.slug %}" class="hover:text-cyan-400 transition-colors">{{ product.name }}</a>
-          </h3>
-        </div>
-        <div class="space-y-2 pt-2 border-t border-slate-800 mt-2">
-          <div class="flex items-center justify-between">
-            <span class="text-base font-black text-white">${{ product.price }}</span>
-          </div>
-          <div class="grid grid-cols-2 gap-1.5">
-            <a href="{% url 'shop:product_detail' product.slug %}" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center">
-              <span>{% translate "Details" %}</span>
-            </a>
-            <form action="{% url 'shop:cart_add' product.id %}" method="POST" class="w-full">
-              {% csrf_token %}
-              <button type="submit" class="w-full py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-md shadow-cyan-600/20 flex items-center justify-center gap-1">
-                <i class="fa-solid fa-cart-plus text-[10px]"></i>
-                <span>{% translate "Cart" %}</span>
-              </button>
-            </form>
-          </div>
-        </div>
-      </article>
-      {% empty %}
-      <div class="col-span-full text-center text-slate-500 py-6 text-xs">{% translate "No laptops available." %}</div>
-      {% endfor %}
-    </div>
+  {% empty %}
+  <section class="text-center text-slate-500 py-10 text-sm">
+    {% translate "No products in stock yet." %}
   </section>
-
-
-  <!-- 📱 TABLETS SHOWCASE SECTION -->
-  <section class="space-y-6">
-    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-      <h2 class="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-        {% translate "Tablets Top Picks" %}
-      </h2>
-      <a href="{% url 'shop:product_list' %}?type=tablets" class="text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-colors">{% translate "View All Tablets" %} &rarr;</a>
-    </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-      {% for product in tablets_top_picks %}
-      <article class="bg-slate-900/80 rounded-2xl border border-slate-800/80 hover:border-emerald-500/50 shadow-lg p-3 flex flex-col justify-between transition-all duration-300 group">
-        <div class="aspect-square w-full p-2 flex items-center justify-center relative bg-white rounded-xl overflow-hidden shadow-inner">
-          <span class="absolute top-2 left-2 px-2 py-0.5 bg-slate-900 text-emerald-400 font-black text-[9px] rounded uppercase tracking-wider z-20">
-            {{ product.brand }}
-          </span>
-          {% if product.image %}
-            <img src="{{ product.image.url }}" alt="{{ product.name }}" style="mix-blend-mode: multiply;" class="h-full w-full object-contain object-center group-hover:scale-105 transition-transform duration-300">
-          {% else %}
-          {% endif %}
-        </div>
-        <div class="mt-3 space-y-1">
-          <span class="text-[9px] font-black uppercase text-emerald-400 tracking-wider">{{ product.brand }}</span>
-          <h3 class="text-xs font-bold text-slate-100 truncate">
-            <a href="{% url 'shop:product_detail' product.slug %}" class="hover:text-emerald-400 transition-colors">{{ product.name }}</a>
-          </h3>
-        </div>
-        <div class="space-y-2 pt-2 border-t border-slate-800 mt-2">
-          <div class="flex items-center justify-between">
-            <span class="text-base font-black text-white">${{ product.price }}</span>
-          </div>
-          <div class="grid grid-cols-2 gap-1.5">
-            <a href="{% url 'shop:product_detail' product.slug %}" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center">
-              <span>{% translate "Details" %}</span>
-            </a>
-            <form action="{% url 'shop:cart_add' product.id %}" method="POST" class="w-full">
-              {% csrf_token %}
-              <button type="submit" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-1">
-                <i class="fa-solid fa-cart-plus text-[10px]"></i>
-                <span>{% translate "Cart" %}</span>
-              </button>
-            </form>
-          </div>
-        </div>
-      </article>
-      {% empty %}
-      <div class="col-span-full text-center text-slate-500 py-6 text-xs">{% translate "No tablets available." %}</div>
-      {% endfor %}
-    </div>
-  </section>
+  {% endfor %}
 
 </div>
 
+{% if hero_slides %}
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script>
   let heroSwiper = new Swiper('.heroSwiper', {
     slidesPerView: 1,
-    loop: true,
+    loop: {{ hero_slides|length }} > 1,
     speed: 1000,
     autoplay: {
       delay: 7500,
@@ -349,4 +149,5 @@
     },
   });
 </script>
+{% endif %}
 {% endblock %}

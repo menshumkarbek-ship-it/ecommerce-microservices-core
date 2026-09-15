@@ -1,27 +1,15 @@
 from decimal import Decimal
-from io import BytesIO
-from unittest.mock import patch
 
-from django.contrib.auth.models import User
-from django.contrib.auth.models import Group
-from django.core.files.uploadedfile import SimpleUploadedFile
+from django.contrib.auth.models import User, Group
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import Category, Order, Product, UserProfile
+from .models import Category, Product
 
 
 class StorefrontTests(TestCase):
     def setUp(self):
         self.category = Category.objects.create(name='Phones', slug='phones')
-        self.user = User.objects.create_user(username='buyer', password='safe-password-123')
-        UserProfile.objects.create(
-            user=self.user,
-            passport_number='ID1234567',
-            verification_method='email',
-            is_email_verified=True,
-            kyc_status='verified',
-        )
 
     def make_product(self, name, slug, price):
         return Product.objects.create(
@@ -33,136 +21,202 @@ class StorefrontTests(TestCase):
             description='A tested product.',
         )
 
-    def make_profile_picture(self, filename='avatar.png'):
-        from PIL import Image
-
-        image_data = BytesIO()
-        Image.new('RGB', (8, 8), color='indigo').save(image_data, format='PNG')
-        return SimpleUploadedFile(filename, image_data.getvalue(), content_type='image/png')
-
     def test_specs_page_renders(self):
         product = self.make_product('Phone', 'phone', '100.00')
         response = self.client.get(reverse('shop:product_specs', args=[product.slug]))
         self.assertEqual(response.status_code, 200)
 
-    def test_homepage_hero_uses_newest_available_phone(self):
-        laptop_category = Category.objects.create(name='Laptops', slug='laptops')
-        Product.objects.create(
-            category=laptop_category,
-            brand='Example',
-            name='Newest Laptop',
-            slug='newest-laptop',
-            price=Decimal('900.00'),
-            description='A tested laptop.',
-        )
-        phone = self.make_product('Newest Phone', 'newest-phone', '500.00')
-
-        response = self.client.get(reverse('shop:home'))
-
-        self.assertEqual(response.context['hero_product'], phone)
-
-    @patch('shop.views.send_mail')
-    def test_change_password_updates_authenticated_user(self, mock_send_mail):
-        self.client.force_login(self.user)
-
-        response = self.client.post(reverse('shop:change_password'), {'action': 'send_code'})
+    def test_product_detail_page_has_no_cart_action(self):
+        product = self.make_product('Phone', 'phone', '100.00')
+        response = self.client.get(reverse('shop:product_detail', args=[product.slug]))
         self.assertEqual(response.status_code, 200)
-        self.user.profile.refresh_from_db()
-        verification_code = self.user.profile.password_change_otp
+        self.assertNotContains(response, 'Add to Cart')
+        self.assertNotContains(response, '/cart/add/')
 
-        response = self.client.post(reverse('shop:change_password'), {
-            'otp_code': verification_code,
-            'new_password1': 'new-safe-password-456',
-            'new_password2': 'new-safe-password-456',
-        })
-
-        self.assertRedirects(response, reverse('shop:account_settings'))
-        mock_send_mail.assert_called_once()
-        self.user.refresh_from_db()
-        self.assertTrue(self.user.check_password('new-safe-password-456'))
-
-    def test_profile_picture_can_be_uploaded_and_removed(self):
-        self.client.force_login(self.user)
-        profile = self.user.profile
-        profile_data = {
-            'username': self.user.username,
-            'first_name': '',
-            'last_name': '',
-            'email': '',
-            'phone_number': '',
-            'passport_number': 'ID1234567',
-        }
-
-        response = self.client.post(
-            reverse('shop:account_settings'),
-            data={**profile_data, 'profile_picture': self.make_profile_picture()},
-        )
-        self.assertRedirects(response, reverse('shop:account_settings'))
-        profile.refresh_from_db()
-        picture_name = profile.profile_picture.name
-        self.assertTrue(profile.profile_picture)
-        self.assertTrue(profile.profile_picture.storage.exists(picture_name))
-
-        response = self.client.post(
-            reverse('shop:account_settings'),
-            data={**profile_data, 'remove_profile_picture': 'on'},
-        )
-        self.assertRedirects(response, reverse('shop:account_settings'))
-        profile.refresh_from_db()
-        self.assertFalse(profile.profile_picture)
-        self.assertFalse(profile.profile_picture.storage.exists(picture_name))
-
-    def test_customer_dropdown_keeps_account_settings_without_payment_link(self):
-        self.client.force_login(self.user)
+    def test_homepage_hero_slide_uses_newest_product_in_featured_category(self):
+        self.category.is_featured_in_hero = True
+        self.category.save(update_fields=['is_featured_in_hero'])
+        self.make_product('Older Phone', 'older-phone', '400.00')
+        newest_phone = self.make_product('Newest Phone', 'newest-phone', '500.00')
 
         response = self.client.get(reverse('shop:home'))
 
-        self.assertContains(response, 'Account Settings')
-        self.assertNotContains(response, 'Update Payment Method')
+        self.assertEqual(len(response.context['hero_slides']), 1)
+        self.assertEqual(response.context['hero_slides'][0]['product'], newest_phone)
 
-    def test_staff_dropdown_shows_admin_tools_without_customer_links(self):
+    def test_catalog_shows_all_products_without_a_filter(self):
+        for i in range(5):
+            self.make_product(f'Phone {i}', f'phone-{i}', '100.00')
+
+        response = self.client.get(reverse('shop:product_list'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context['has_active_filters'])
+        self.assertEqual(response.context['products'].paginator.count, 5)
+
+    def test_catalog_filter_narrows_results_but_keeps_pagination(self):
+        self.make_product('Matching Phone', 'matching-phone', '100.00')
+        other_category = Category.objects.create(name='Tablets', slug='tablets')
+        Product.objects.create(
+            category=other_category,
+            brand='Example',
+            name='Other Tablet',
+            slug='other-tablet',
+            price=Decimal('200.00'),
+            description='A tested tablet.',
+        )
+
+        response = self.client.get(reverse('shop:product_list'), {'type': 'phones'})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['has_active_filters'])
+        self.assertEqual(response.context['products'].paginator.count, 1)
+
+    def test_anonymous_visitor_sees_no_admin_management_link(self):
+        response = self.client.get(reverse('shop:home'))
+
+        self.assertNotContains(response, 'Manage Webpage')
+
+    def test_staff_sees_management_link(self):
         staff = User.objects.create_user(username='manager', password='manager-password-123', is_staff=True)
         self.client.force_login(staff)
 
         response = self.client.get(reverse('shop:home'))
 
-        self.assertContains(response, 'Audit Log')
-        self.assertContains(response, 'Add Product Portal')
-        self.assertContains(response, 'Purchased Orders')
-        self.assertContains(response, 'Account Settings')
-        self.assertNotContains(response, 'Update Payment Method')
+        self.assertContains(response, 'Manage Webpage')
 
-    def test_manager_dropdown_matches_admin_permissions(self):
+    def test_manager_group_member_can_reach_add_product_page(self):
         manager = User.objects.create_user(username='group-manager', password='manager-password-123')
         manager.groups.add(Group.objects.create(name='Managers'))
         self.client.force_login(manager)
 
-        response = self.client.get(reverse('shop:home'))
+        response = self.client.get(reverse('shop:create_product'))
 
-        self.assertContains(response, 'Audit Log')
-        self.assertContains(response, 'Add Product Portal')
-        self.assertContains(response, 'Account Settings')
-        self.assertNotContains(response, 'Update Payment Method')
+        self.assertEqual(response.status_code, 200)
 
-    @patch('shop.views.requests.post')
-    def test_checkout_processes_every_cart_item(self, mock_post):
-        first = self.make_product('Phone', 'phone', '100.00')
-        second = self.make_product('Tablet', 'tablet', '200.00')
-        self.client.force_login(self.user)
-        self.client.post(reverse('shop:cart_add', args=[first.id]))
-        self.client.post(reverse('shop:cart_add', args=[second.id]))
-        mock_post.return_value.status_code = 201
+    def test_regular_user_cannot_reach_add_product_page(self):
+        user = User.objects.create_user(username='buyer', password='safe-password-123')
+        self.client.force_login(user)
 
-        response = self.client.post(reverse('shop:checkout_order'))
+        response = self.client.get(reverse('shop:create_product'))
 
         self.assertRedirects(response, reverse('shop:product_list'))
-        order = Order.objects.get(user=self.user)
-        self.assertEqual(order.total_price, Decimal('300.00'))
-        self.assertEqual(order.items.count(), 2)
-        self.assertFalse(Product.objects.filter(id__in=[first.id, second.id], is_sold=False).exists())
 
-    def test_cart_mutation_routes_require_post(self):
-        product = self.make_product('Phone', 'phone', '100.00')
-        self.client.force_login(self.user)
-        self.assertEqual(self.client.get(reverse('shop:cart_remove', args=[product.id])).status_code, 405)
-        self.assertEqual(self.client.get(reverse('shop:checkout_order')).status_code, 405)
+    def test_add_product_form_offers_brand_suggestions_but_stays_free_text(self):
+        self.make_product('Phone', 'phone', '100.00')
+        staff = User.objects.create_user(username='manager', password='manager-password-123', is_staff=True)
+        self.client.force_login(staff)
+
+        response = self.client.get(reverse('shop:create_product'), {'action': 'new'})
+
+        self.assertContains(response, 'id="brand-suggestions"')
+        self.assertContains(response, 'value="Example"')
+        self.assertContains(response, 'list="brand-suggestions"')
+
+    def test_staff_can_create_a_new_category(self):
+        staff = User.objects.create_user(username='manager', password='manager-password-123', is_staff=True)
+        self.client.force_login(staff)
+
+        response = self.client.post(reverse('shop:create_category'), {'name': 'Headphones', 'slug': ''}, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        category = Category.objects.get(name='Headphones')
+        self.assertEqual(category.slug, 'headphones')
+
+    def test_regular_user_cannot_create_a_category(self):
+        user = User.objects.create_user(username='buyer', password='safe-password-123')
+        self.client.force_login(user)
+
+        response = self.client.get(reverse('shop:create_category'))
+
+        self.assertRedirects(response, reverse('shop:product_list'))
+
+    def test_cyrillic_category_name_gets_a_non_empty_transliterated_slug(self):
+        staff = User.objects.create_user(username='manager', password='manager-password-123', is_staff=True)
+        self.client.force_login(staff)
+
+        self.client.post(reverse('shop:create_category'), {'name': 'Наушники', 'slug': ''})
+
+        category = Category.objects.get(name='Наушники')
+        self.assertEqual(category.slug, 'naushniki')
+        # The homepage must be able to link to it without raising NoReverseMatch.
+        response = self.client.get(reverse('shop:home'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_cyrillic_product_name_gets_a_non_empty_transliterated_slug(self):
+        staff = User.objects.create_user(username='manager', password='manager-password-123', is_staff=True)
+        self.client.force_login(staff)
+
+        self.client.post(reverse('shop:create_product'), {
+            'category': self.category.id,
+            'brand': 'Sony',
+            'name': 'Наушники Про',
+            'price': '199.99',
+            'description': 'Test description.',
+            'slug': '',
+        })
+
+        product = Product.objects.get(name='Наушники Про')
+        self.assertTrue(product.slug)
+        self.assertNotEqual(product.slug, '')
+
+    def test_toggling_category_adds_and_removes_hero_slide(self):
+        staff = User.objects.create_user(username='manager', password='manager-password-123', is_staff=True)
+        self.client.force_login(staff)
+        self.make_product('Phone', 'phone', '100.00')
+
+        self.assertEqual(self.category.is_featured_in_hero, False)
+        response = self.client.get(reverse('shop:home'))
+        self.assertEqual(response.context['hero_slides'], [])
+
+        self.client.post(reverse('shop:toggle_category_hero', args=[self.category.id]))
+        self.category.refresh_from_db()
+        self.assertTrue(self.category.is_featured_in_hero)
+
+        response = self.client.get(reverse('shop:home'))
+        self.assertEqual(len(response.context['hero_slides']), 1)
+        self.assertEqual(response.context['hero_slides'][0]['category'], self.category)
+
+        self.client.post(reverse('shop:toggle_category_hero', args=[self.category.id]))
+        response = self.client.get(reverse('shop:home'))
+        self.assertEqual(response.context['hero_slides'], [])
+
+    def test_new_category_can_be_created_already_featured_in_hero(self):
+        staff = User.objects.create_user(username='manager', password='manager-password-123', is_staff=True)
+        self.client.force_login(staff)
+
+        self.client.post(reverse('shop:create_category'), {
+            'name': 'Powerbanks', 'slug': '', 'is_featured_in_hero': 'on',
+        })
+
+        category = Category.objects.get(name='Powerbanks')
+        self.assertTrue(category.is_featured_in_hero)
+
+    def test_regular_user_cannot_toggle_hero_slide(self):
+        user = User.objects.create_user(username='buyer', password='safe-password-123')
+        self.client.force_login(user)
+
+        response = self.client.post(reverse('shop:toggle_category_hero', args=[self.category.id]))
+
+        self.assertRedirects(response, reverse('shop:product_list'))
+        self.category.refresh_from_db()
+        self.assertFalse(self.category.is_featured_in_hero)
+
+    def test_homepage_gets_a_row_for_every_category_with_stock(self):
+        headphones = Category.objects.create(name='Headphones', slug='headphones')
+        Product.objects.create(
+            category=headphones,
+            brand='Sony',
+            name='WH-1000XM5',
+            slug='wh-1000xm5',
+            price=Decimal('349.00'),
+            description='Noise-cancelling headphones.',
+        )
+        self.make_product('Phone', 'phone', '100.00')
+
+        response = self.client.get(reverse('shop:home'))
+
+        sections = {s['category'].slug: s for s in response.context['category_sections']}
+        self.assertIn('headphones', sections)
+        self.assertIn('phones', sections)
+        self.assertContains(response, 'Newest In Headphones')

@@ -2,80 +2,119 @@
 {% load static %}
 {% load i18n %}
 
-{% block title %}TechVault | {% translate "About Us" %}{% endblock %}
+{% block title %}{{ store_name }} | {% translate "About Us" %}{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto px-6 py-12 space-y-12 min-h-screen text-slate-100">
+<div class="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8 sm:space-y-12 min-h-screen text-slate-100">
 
     <!-- Hero Header -->
     <section class="text-center space-y-4">
+        {% if about.translated_badge_text %}
         <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shadow-inner">
-            <i class="fa-solid fa-microchip text-xs"></i> {% translate "Enterprise Architecture" %}
+            <i class="fa-solid fa-microchip text-xs"></i> {{ about.translated_badge_text }}
         </span>
-        <h1 class="text-4xl sm:text-5xl font-black tracking-tight text-white">{% translate "About TechVault" %}</h1>
-        <p class="text-base sm:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            {% translate "We bridge the gap between premium raw computing configurations and tech enthusiasts, offering secure transactions since 2026." %}
-        </p>
+        {% endif %}
+        <h1 class="text-4xl sm:text-5xl font-black tracking-tight text-white">{{ about.translated_heading }}</h1>
+        <p class="text-base sm:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed whitespace-pre-line">{{ about.translated_intro_text }}</p>
+    </section>
+
+    <!-- What We Offer -->
+    <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-6 space-y-2 text-center">
+            <div class="w-11 h-11 mx-auto rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                <i class="fa-solid fa-mobile-screen-button"></i>
+            </div>
+            <h3 class="text-sm font-black text-white">{% translate "Phones" %}</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">{% translate "Flagship and everyday smartphones from the brands you trust." %}</p>
+        </div>
+        <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-6 space-y-2 text-center">
+            <div class="w-11 h-11 mx-auto rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+                <i class="fa-solid fa-laptop"></i>
+            </div>
+            <h3 class="text-sm font-black text-white">{% translate "Laptops" %}</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">{% translate "From lightweight ultrabooks to high-performance workstations." %}</p>
+        </div>
+        <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-6 space-y-2 text-center">
+            <div class="w-11 h-11 mx-auto rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                <i class="fa-solid fa-tablet-screen-button"></i>
+            </div>
+            <h3 class="text-sm font-black text-white">{% translate "Tablets" %}</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">{% translate "Portable displays built for work, study, and creativity." %}</p>
+        </div>
     </section>
 
     <!-- Flagship Store Section with Real Map Photo -->
-    <section class="grid grid-cols-1 md:grid-cols-2 gap-8 bg-slate-900/80 backdrop-blur-xl border border-slate-800/80 rounded-3xl p-8 shadow-2xl items-center">
+    {% if about.translated_visit_heading or about.translated_visit_text or about.translated_store_address_line1 or about.translated_store_address_line2 %}
+    <section class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 bg-slate-900/80 backdrop-blur-xl border border-slate-800/80 rounded-3xl p-5 sm:p-8 shadow-2xl items-center">
         <div class="space-y-6 flex flex-col justify-between">
             <div class="space-y-3">
-                <span class="text-[10px] font-black uppercase tracking-widest text-indigo-400 bg-indigo-950/60 border border-indigo-800/60 px-2.5 py-1 rounded-md">{% translate "Global Headquarters" %}</span>
+                <span class="text-[10px] font-black uppercase tracking-widest text-indigo-400 bg-indigo-950/60 border border-indigo-800/60 px-2.5 py-1 rounded-md">{% translate "Visit Us" %}</span>
+                {% if about.translated_visit_heading %}
                 <h2 class="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-                    <i class="fa-solid fa-store text-indigo-400"></i> {% translate "Visit Our Flagship Store" %}
+                    <i class="fa-solid fa-store text-indigo-400"></i> {{ about.translated_visit_heading }}
                 </h2>
-                <p class="text-sm text-slate-400 leading-relaxed">
-                    {% translate "Experience our premium catalog in person. Interact directly with custom laptop cooling modules and compare flagship smartphone displays in our hands-on sandbox zone." %}
-                </p>
+                {% endif %}
+                {% if about.translated_visit_text %}
+                <p class="text-sm text-slate-400 leading-relaxed whitespace-pre-line">{{ about.translated_visit_text }}</p>
+                {% endif %}
             </div>
 
+            {% if about.translated_store_address_line1 or about.translated_store_address_line2 %}
             <div class="pt-4 border-t border-slate-800 space-y-2 text-xs text-slate-300">
                 <p class="text-[10px] uppercase tracking-wider text-indigo-400 font-black">{% translate "Physical Address" %}:</p>
                 <div class="flex items-start gap-2.5">
                     <i class="fa-solid fa-location-dot text-indigo-400 mt-0.5"></i>
                     <div>
-                        <p class="font-bold text-slate-200">100 Tech Vault Plaza, Suite 404</p>
-                        <p class="font-bold text-slate-200">Silicon District, CA 94016</p>
+                        {% if about.translated_store_address_line1 %}<p class="font-bold text-slate-200">{{ about.translated_store_address_line1 }}</p>{% endif %}
+                        {% if about.translated_store_address_line2 %}<p class="font-bold text-slate-200">{{ about.translated_store_address_line2 }}</p>{% endif %}
                     </div>
                 </div>
             </div>
+            {% endif %}
         </div>
 
-        <!-- Real Stylized Dark-Mode Map Photo Container -->
+        <!-- Store Photo (admin-uploaded) or Stylized Dark-Mode Map Fallback -->
         <div class="relative rounded-2xl overflow-hidden h-64 md:h-full min-h-[240px] border border-slate-800 shadow-inner group bg-slate-950">
-            <!-- Curated dark-themed map graphic background -->
-            <img src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=800&q=80"
-                 alt="Store Location Map"
-                 class="w-full h-full object-cover opacity-60 mix-blend-luminosity group-hover:scale-105 group-hover:opacity-80 transition-all duration-700">
+            {% if about.store_image %}
+                <img src="{{ about.store_image.url }}"
+                     alt="{% translate 'Our store' %}"
+                     class="w-full h-full object-cover group-hover:scale-105 transition-all duration-700">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
+            {% else %}
+                <!-- Curated dark-themed map graphic background -->
+                <img src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=800&q=80"
+                     alt="Store Location Map"
+                     class="w-full h-full object-cover opacity-60 mix-blend-luminosity group-hover:scale-105 group-hover:opacity-80 transition-all duration-700">
 
-            <!-- Gradient Overlay for Contrast -->
-            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
+                <!-- Gradient Overlay for Contrast -->
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
 
-            <!-- Glowing Map Pin Marker Centerpiece -->
-            <div class="absolute inset-0 flex flex-col items-center justify-center space-y-2 pointer-events-none">
-                <div class="w-12 h-12 rounded-full bg-indigo-600/30 border border-indigo-500/50 flex items-center justify-center animate-ping absolute"></div>
-                <div class="w-10 h-10 rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-600/50 flex items-center justify-center relative z-10 border border-indigo-400">
-                    <i class="fa-solid fa-map-pin text-sm"></i>
+                <!-- Glowing Map Pin Marker Centerpiece -->
+                <div class="absolute inset-0 flex flex-col items-center justify-center space-y-2 pointer-events-none">
+                    <div class="w-12 h-12 rounded-full bg-indigo-600/30 border border-indigo-500/50 flex items-center justify-center animate-ping absolute"></div>
+                    <div class="w-10 h-10 rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-600/50 flex items-center justify-center relative z-10 border border-indigo-400">
+                        <i class="fa-solid fa-map-pin text-sm"></i>
+                    </div>
+                    <span class="bg-slate-900/90 backdrop-blur-md border border-slate-800 px-3 py-1 rounded-xl text-[10px] font-black tracking-wider text-indigo-300 shadow-xl uppercase">
+                        {% blocktranslate with name=store_name %}{{ name }} Store{% endblocktranslate %}
+                    </span>
                 </div>
-                <span class="bg-slate-900/90 backdrop-blur-md border border-slate-800 px-3 py-1 rounded-xl text-[10px] font-black tracking-wider text-indigo-300 shadow-xl uppercase">
-                    {% translate "TechVault Central" %}
-                </span>
-            </div>
+            {% endif %}
         </div>
     </section>
+    {% endif %}
 
     <!-- Call to Action Banner -->
-    <section class="bg-gradient-to-r from-indigo-900/80 via-slate-900 to-indigo-950 rounded-3xl p-8 sm:p-12 text-center text-white space-y-6 shadow-2xl border border-indigo-500/20 relative overflow-hidden">
+    {% if about.translated_cta_heading or about.translated_cta_text %}
+    <section class="bg-gradient-to-r from-indigo-900/80 via-slate-900 to-indigo-950 rounded-3xl p-6 sm:p-12 text-center text-white space-y-6 shadow-2xl border border-indigo-500/20 relative overflow-hidden">
         <div class="absolute -top-24 -left-24 w-72 h-72 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute -bottom-24 -right-24 w-72 h-72 bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
 
         <div class="relative z-10 space-y-4 max-w-xl mx-auto">
-            <h3 class="text-2xl sm:text-3xl font-black tracking-tight">{% translate "Ready to Upgrade Your Mobile Engine?" %}</h3>
-            <p class="text-slate-300 text-sm leading-relaxed">
-                {% translate "Explore verified inventories featuring optimized parameters for performance developers and computing specialists alike." %}
-            </p>
+            {% if about.translated_cta_heading %}<h3 class="text-2xl sm:text-3xl font-black tracking-tight">{{ about.translated_cta_heading }}</h3>{% endif %}
+            {% if about.translated_cta_text %}
+            <p class="text-slate-300 text-sm leading-relaxed whitespace-pre-line">{{ about.translated_cta_text }}</p>
+            {% endif %}
             <div class="pt-2">
                 <a href="{% url 'shop:product_list' %}" class="inline-flex items-center gap-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-black px-8 py-4 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-lg shadow-indigo-600/30 hover:scale-105">
                     <i class="fa-solid fa-boxes-stacked text-xs"></i>
@@ -84,6 +123,7 @@
             </div>
         </div>
     </section>
+    {% endif %}
 
 </div>
 {% endblock %}

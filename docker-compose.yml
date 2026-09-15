@@ -25,7 +25,7 @@ services:
   web:
     build: .
     container_name: techvault_django_monolith
-    command: python manage.py runserver 0.0.0.0:8000
+    command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app
     ports:
@@ -37,7 +37,6 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=postgres
       - REDIS_URL=redis://redis:6379/0
-      - FLASK_PDF_SERVICE_URL=http://flask_service:8002
       - FASTAPI_SERVICE_URL=http://fastapi_service:8001
     depends_on:
       - db
@@ -74,18 +73,6 @@ services:
     ports:
       - "8001:8001"
     command: uvicorn fastapi_service.main:app --host 0.0.0.0 --port 8001
-    environment:
-      - DB_HOST=db
-    depends_on:
-      - db
-
-  # 📄 Flask PDF Invoice Microservice (Port 8002)
-  flask_service:
-    build: .
-    container_name: techvault_flask_service
-    ports:
-      - "8002:8002"
-    command: python invoice_service/app.py
     environment:
       - DB_HOST=db
     depends_on:

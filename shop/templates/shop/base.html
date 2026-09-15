@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-site-verification" content="1rzUjNt1yLmNpV5M-uHcX_GX9CodyXjgnCmvGEf28ic" />
-    <title>{% block title %}TechVault | {% translate "Premium Electronics" %}{% endblock %}</title>
+    <title>{% block title %}{{ store_name }} | {% translate "Premium Electronics" %}{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script>
@@ -14,10 +14,12 @@
         }
     </script>
     <style>
-        .profile-dropdown:focus-within .dropdown-menu {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            pointer-events: auto;
+        body,
+        button,
+        input,
+        select,
+        textarea {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
         }
 
         .theme-light body {
@@ -102,8 +104,15 @@
         }
 
         .theme-toggle {
-            width: 2.5rem;
-            height: 2.5rem;
+            width: 2.25rem;
+            height: 2.25rem;
+        }
+
+        @media (min-width: 640px) {
+            .theme-toggle {
+                width: 2.5rem;
+                height: 2.5rem;
+            }
         }
 
         .product-management .bg-white {
@@ -175,18 +184,18 @@
 <body class="bg-slate-950 text-slate-100 antialiased min-h-screen flex flex-col justify-between selection:bg-indigo-600/30 selection:text-indigo-400 m-0 p-0">
 
     <nav class="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-xl border-b border-slate-800/80 w-full">
-        <div class="w-full px-6">
-            <div class="flex items-center justify-between h-20 gap-4">
+        <div class="w-full px-4 sm:px-6">
+            <div class="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-4">
 
-                <div class="flex items-center flex-shrink-0">
-                    <a href="{% url 'shop:home' %}" class="text-2xl font-black tracking-tight text-white hover:opacity-90 transition-opacity flex items-center gap-2">
-                        TechVault<span class="text-indigo-500">.</span>
+                <div class="flex items-center min-w-0">
+                    <a href="{% url 'shop:home' %}" class="text-lg sm:text-2xl font-black tracking-tight text-white hover:opacity-90 transition-opacity flex items-center gap-1.5 sm:gap-2 min-w-0">
+                        <span class="truncate min-w-0">{{ store_name }}</span><span class="text-indigo-500 shrink-0">.</span>
                     </a>
                 </div>
 
-                {% if request.resolver_match.url_name != 'home' %}
-                <div class="flex-grow max-w-lg mx-4">
-                    <form action="{% url 'shop:product_list' %}" method="GET" class="relative">
+                <div class="flex-grow hidden md:block">
+                    {% if request.resolver_match.url_name == 'product_list' or request.resolver_match.url_name == 'product_list_by_category' %}
+                    <form action="{% url 'shop:product_list' %}" method="GET" class="relative max-w-lg mx-auto">
                         {% if selected_brand %}
                             <input type="hidden" name="brand" value="{{ selected_brand }}">
                         {% endif %}
@@ -203,12 +212,10 @@
                             >
                         </div>
                     </form>
+                    {% endif %}
                 </div>
-                {% else %}
-                <div class="flex-grow"></div>
-                {% endif %}
 
-                <div class="flex items-center space-x-4 sm:space-x-6 flex-shrink-0">
+                <div class="flex items-center space-x-1.5 sm:space-x-4 lg:space-x-6 flex-shrink-0">
 
                     <div class="hidden lg:flex items-center space-x-6 font-semibold text-sm mr-2">
                         <a href="{% url 'shop:home' %}"
@@ -225,14 +232,14 @@
                         </a>
                         <a href="{% url 'shop:contact_us' %}"
                            class="transition-colors {% if request.resolver_match.url_name == 'contact_us' %}text-indigo-400 font-bold border-b-2 border-indigo-500 pb-0.5{% else %}text-slate-400 hover:text-white{% endif %}">
-                            {% translate "Support" %}
+                            {% translate "Contact" %}
                         </a>
                     </div>
 
                     <form action="{% url 'set_language' %}" method="post" id="language-switcher-form" class="inline-block">
                         {% csrf_token %}
                         <input name="next" type="hidden" value="{{ request.get_full_path }}">
-                        <select name="language" onchange="this.form.submit()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-extrabold px-3 py-2 rounded-xl border border-slate-700/80 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer">
+                        <select name="language" onchange="this.form.submit()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] sm:text-xs font-extrabold px-1.5 py-1.5 sm:px-3 sm:py-2 rounded-xl border border-slate-700/80 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer max-w-[4.5rem] sm:max-w-none">
                             {% get_current_language as CURRENT_LANG %}
                             {% get_available_languages as AVAILABLE_LANGS %}
                             {% for lang_code, lang_name in AVAILABLE_LANGS %}
@@ -248,85 +255,92 @@
                         <i class="fa-solid fa-moon theme-toggle-moon text-indigo-400"></i>
                     </button>
 
-                    <!-- 🛡️ ADMIN AUDIT LOG vs CUSTOMER CART SWITCHER -->
+                    <!-- 🛡️ STAFF-ONLY MANAGEMENT LINK (this is a view-only storefront: no cart, checkout, or customer accounts) -->
+                    <!-- Categories/Contacts/About Page live as tabs inside this hub (shop:create_product) -->
+                    <!-- instead of separate top-nav buttons, to keep the navbar from getting crowded. -->
                     {% if request.user.is_authenticated and is_admin_user %}
-                        <a href="{% url 'shop:admin_purchase_history' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-950/80 border border-indigo-800/80 hover:border-indigo-500 text-indigo-400 rounded-xl text-xs font-bold transition-all shadow-md">
-                            <i class="fa-solid fa-clock-rotate-left"></i>
-                            <span>{% translate "Audit Log" %}</span>
+                        <a href="{% url 'shop:create_product' %}" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-indigo-950/80 border border-indigo-800/80 hover:border-indigo-500 text-indigo-400 rounded-xl text-xs font-bold transition-all shadow-md">
+                            <i class="fa-solid fa-sliders"></i>
+                            <span>{% translate "Manage Webpage" %}</span>
                         </a>
-                    {% else %}
-                        <a href="{% url 'shop:cart_detail' %}" class="relative flex items-center space-x-2 bg-slate-800/80 hover:bg-slate-700/80 px-4 py-2 rounded-xl border border-slate-700/80 transition-colors text-sm font-bold text-slate-100">
-                            <i class="fa-solid fa-cart-shopping text-slate-400"></i>
-                            <span>{% translate "Cart" %}</span>
-                            <span class="bg-indigo-600 text-white text-xs px-2 py-0.5 rounded-full font-extrabold">
-                                {% if cart %}{{ cart|length }}{% else %}0{% endif %}
-                            </span>
-                        </a>
-                    {% endif %}
-
-                    {% if request.user.is_authenticated %}
-                        <div class="relative profile-dropdown">
-                            <button class="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-600 border border-indigo-500 font-bold text-white text-sm shadow-md shadow-indigo-600/20 hover:scale-105 transition-all overflow-hidden focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                                {% if user_profile and user_profile.profile_picture %}
-                                    <img src="{{ user_profile.profile_picture.url }}" alt="Avatar" class="h-full w-full object-cover">
-                                {% else %}
-                                    {{ request.user.username|slice:":2"|upper }}
-                                {% endif %}
+                        <form method="POST" action="{% url 'admin:logout' %}" class="hidden lg:block">
+                            {% csrf_token %}
+                            <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-800/80 hover:bg-red-950/60 border border-slate-700/80 hover:border-red-800/80 text-slate-300 hover:text-red-400 rounded-xl text-xs font-bold transition-all">
+                                <i class="fa-solid fa-right-from-bracket"></i>
+                                <span>{% translate "Sign Out" %}</span>
                             </button>
-
-                            <div class="dropdown-menu absolute right-0 mt-3 w-56 bg-slate-900/95 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl opacity-0 transform translate-y-2 scale-95 pointer-events-none transition-all duration-200 z-50 overflow-hidden">
-                                <div class="p-4 bg-slate-950/80 border-b border-slate-800 flex items-center space-x-3">
-                                    <div class="h-9 w-9 rounded-full bg-indigo-600 border border-slate-700 shadow-inner overflow-hidden flex items-center justify-center flex-shrink-0">
-                                        {% if user_profile and user_profile.profile_picture %}
-                                            <img src="{{ user_profile.profile_picture.url }}" alt="Avatar" class="h-full w-full object-cover">
-                                        {% else %}
-                                            <span class="text-white text-xs font-bold">{{ request.user.username|slice:":2"|upper }}</span>
-                                        {% endif %}
-                                    </div>
-                                    <div class="truncate">
-                                        <p class="text-[10px] text-slate-400 font-black uppercase tracking-wider">{% translate "Logged In As" %}</p>
-                                        <p class="text-xs font-black text-white truncate">@{{ request.user.username }}</p>
-                                    </div>
-                                </div>
-
-                                <div class="p-1.5 space-y-0.5 text-slate-300">
-                                    {% if is_admin_user %}
-                                        <a href="{% url 'shop:create_product' %}" class="flex items-center px-3 py-2.5 text-sm font-bold text-indigo-400 hover:bg-slate-800 rounded-xl transition-colors">
-                                            <i class="fa-solid fa-plus mr-2.5 text-xs"></i> {% translate "Add Product Portal" %}
-                                        </a>
-                                        <div class="h-[1px] bg-slate-800 my-1"></div>
-                                    {% endif %}
-
-                                    <a href="{% url 'shop:order_history' %}" class="flex items-center px-3 py-2.5 text-sm font-semibold hover:bg-slate-800 hover:text-white rounded-xl transition-colors">
-                                        <i class="fa-solid fa-receipt mr-2.5 text-xs text-slate-400"></i> {% translate "Purchased Orders" %}
-                                    </a>
-                                    <a href="{% url 'shop:account_settings' %}" class="flex items-center px-3 py-2.5 text-sm font-semibold hover:bg-slate-800 hover:text-white rounded-xl transition-colors">
-                                        <i class="fa-solid fa-gear mr-2.5 text-xs text-slate-400"></i> {% translate "Account Settings" %}
-                                    </a>
-                                </div>
-
-                                <div class="p-1.5 border-t border-slate-800 bg-slate-950/80">
-                                    <a href="{% url 'shop:logout' %}" class="flex items-center px-3 py-2.5 text-sm font-bold text-red-400 hover:bg-red-500/10 rounded-xl transition-colors">
-                                        <i class="fa-solid fa-right-from-bracket mr-2.5 text-xs"></i> {% translate "Log Out" %}
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    {% else %}
-                        <div class="flex items-center space-x-3">
-                            <a href="{% url 'shop:login' %}" class="text-sm font-bold text-slate-300 hover:text-white transition-colors">{% translate "Sign In" %}</a>
-                            <a href="{% url 'shop:register' %}" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors shadow-md shadow-indigo-600/30">{% translate "Register" %}</a>
-                        </div>
+                        </form>
                     {% endif %}
+
+                    <!-- Mobile menu toggle: reveals Home/Catalog/About/Contact (and, for -->
+                    <!-- staff, the management links) below the navbar on phones/tablets, -->
+                    <!-- where the links above are hidden until the "lg" breakpoint. -->
+                    <button type="button" id="mobile-menu-toggle" class="lg:hidden inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-700/80 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500" aria-label="{% translate 'Toggle menu' %}" aria-expanded="false" aria-controls="mobile-menu">
+                        <i class="fa-solid fa-bars mobile-menu-icon-open"></i>
+                        <i class="fa-solid fa-xmark mobile-menu-icon-close hidden"></i>
+                    </button>
 
                 </div>
+            </div>
+
+            <!-- Catalog search, own full-width row below md (avoids squeezing -->
+            <!-- into the top bar next to the logo/controls on phones/tablets) -->
+            {% if request.resolver_match.url_name == 'product_list' or request.resolver_match.url_name == 'product_list_by_category' %}
+            <div class="md:hidden pb-4">
+                <form action="{% url 'shop:product_list' %}" method="GET" class="relative">
+                    {% if selected_brand %}
+                        <input type="hidden" name="brand" value="{{ selected_brand }}">
+                    {% endif %}
+                    <div class="relative flex items-center">
+                        <span class="absolute left-4 text-slate-500">
+                            <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                        </span>
+                        <input
+                            type="text"
+                            name="search"
+                            placeholder="{% translate 'Search premium electronics...' %}"
+                            value="{{ request.GET.search|default:'' }}"
+                            class="w-full bg-slate-800/80 border border-slate-700/80 rounded-2xl pl-11 pr-4 py-2.5 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:bg-slate-800 transition-all"
+                        >
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+
+            <!-- Mobile Menu Panel -->
+            <div id="mobile-menu" class="hidden lg:hidden pb-4 space-y-1 font-semibold text-sm">
+                <a href="{% url 'shop:home' %}" class="block px-3 py-2.5 rounded-xl {% if request.resolver_match.url_name == 'home' %}bg-indigo-950/60 text-indigo-400{% else %}text-slate-300 hover:bg-slate-800/60{% endif %}">
+                    {% translate "Home" %}
+                </a>
+                <a href="{% url 'shop:product_list' %}" class="block px-3 py-2.5 rounded-xl {% if request.resolver_match.url_name == 'product_list' or request.resolver_match.url_name == 'product_list_by_category' %}bg-indigo-950/60 text-indigo-400{% else %}text-slate-300 hover:bg-slate-800/60{% endif %}">
+                    {% translate "Catalog" %}
+                </a>
+                <a href="{% url 'shop:about_us' %}" class="block px-3 py-2.5 rounded-xl {% if request.resolver_match.url_name == 'about_us' %}bg-indigo-950/60 text-indigo-400{% else %}text-slate-300 hover:bg-slate-800/60{% endif %}">
+                    {% translate "About Us" %}
+                </a>
+                <a href="{% url 'shop:contact_us' %}" class="block px-3 py-2.5 rounded-xl {% if request.resolver_match.url_name == 'contact_us' %}bg-indigo-950/60 text-indigo-400{% else %}text-slate-300 hover:bg-slate-800/60{% endif %}">
+                    {% translate "Contact" %}
+                </a>
+                {% if request.user.is_authenticated and is_admin_user %}
+                <div class="pt-2 mt-2 border-t border-slate-800/80 space-y-1">
+                    <a href="{% url 'shop:create_product' %}" class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-indigo-400 bg-indigo-950/40 hover:bg-indigo-950/60">
+                        <i class="fa-solid fa-sliders text-xs"></i> {% translate "Manage Webpage" %}
+                    </a>
+                    <form method="POST" action="{% url 'admin:logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/60 hover:text-red-400 text-left">
+                            <i class="fa-solid fa-right-from-bracket text-xs"></i> {% translate "Sign Out" %}
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
             </div>
         </div>
     </nav>
 
     <main class="flex-grow w-full m-0 p-0">
         {% if messages %}
-            <div class="px-6 mt-6 space-y-2">
+            <div class="px-4 sm:px-6 mt-6 space-y-2">
                 {% for message in messages %}
                     <div class="p-4 text-sm font-semibold rounded-xl border {% if message.tags == 'success' %}bg-emerald-950/60 text-emerald-400 border-emerald-800/80{% else %}bg-amber-950/60 text-amber-400 border-amber-800/80{% endif %} shadow-sm flex items-center gap-2">
                         <i class="fa-solid {% if message.tags == 'success' %}fa-circle-check{% else %}fa-triangle-exclamation{% endif %}"></i>
@@ -340,9 +354,7 @@
         {% endblock %}
     </main>
 
-    {% if request.resolver_match.url_name != 'product_list' %}
-        {% include "shop/footer.html" %}
-    {% endif %}
+    {% include "shop/footer.html" %}
 
     {% block extra_js %}{% endblock %}
 
@@ -354,6 +366,39 @@
                 localStorage.setItem('techvault-theme', isLight ? 'light' : 'dark');
             });
         }
+
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        if (mobileMenuToggle && mobileMenu) {
+            mobileMenuToggle.addEventListener('click', () => {
+                const isOpen = mobileMenu.classList.toggle('hidden') === false;
+                mobileMenuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                mobileMenuToggle.querySelector('.mobile-menu-icon-open').classList.toggle('hidden', isOpen);
+                mobileMenuToggle.querySelector('.mobile-menu-icon-close').classList.toggle('hidden', !isOpen);
+            });
+        }
+
+        // Per-language field tabs (EN/RU/KY): shared by every management form
+        // that lets an admin enter translated content field-by-field. Each
+        // group is a `.lang-tabs[data-group="X"]` button row next to
+        // `.lang-field[data-group="X"][data-lang="..."]` input wrappers.
+        document.querySelectorAll('.lang-tab-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const tabs = btn.closest('.lang-tabs');
+                const group = tabs.dataset.group;
+                const lang = btn.dataset.lang;
+                tabs.querySelectorAll('.lang-tab-btn').forEach(function (b) {
+                    const active = b.dataset.lang === lang;
+                    b.classList.toggle('bg-indigo-600', active);
+                    b.classList.toggle('text-white', active);
+                    b.classList.toggle('bg-gray-100', !active);
+                    b.classList.toggle('text-gray-500', !active);
+                });
+                document.querySelectorAll('.lang-field[data-group="' + group + '"]').forEach(function (f) {
+                    f.classList.toggle('hidden', f.dataset.lang !== lang);
+                });
+            });
+        });
     </script>
 
 </body>

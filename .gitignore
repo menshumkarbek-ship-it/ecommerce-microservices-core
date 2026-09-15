@@ -5,13 +5,11 @@ db.sqlite3
 .idea/
 .vscode/
 media/
-invoice_service/generated_invoices/
 .env
 *.py[cod]
 __pycache__/
 media/
 staticfiles/
-invoice_service/generated_invoices/*.pdf
 venv/
 .idea/
 *.log

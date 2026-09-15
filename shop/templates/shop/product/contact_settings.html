@@ -1,0 +1,115 @@
+{% extends "shop/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% translate "Contact Settings" %} | {{ store_name }}{% endblock %}
+
+{% block content %}
+<div class="product-management max-w-4xl mx-auto my-6 px-4 sm:px-6 space-y-6">
+
+    <!-- Navigation Breadcrumb -->
+    <div class="flex items-center space-x-2 text-xs font-bold text-gray-400 uppercase tracking-wide">
+        <a href="{% url 'shop:product_list' %}" class="hover:text-indigo-600 transition-colors">{% translate "Catalog" %}</a>
+        <span>/</span>
+        <span class="text-indigo-600">{% translate "Contact Settings" %}</span>
+    </div>
+
+    <!-- Management Tabs -->
+    <div class="flex items-center gap-2 flex-wrap">
+        <a href="{% url 'shop:create_product' %}" class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-white border border-gray-200/80 text-gray-500 hover:text-indigo-600 transition-colors">{% translate "Products" %}</a>
+        <a href="{% url 'shop:create_category' %}" class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-white border border-gray-200/80 text-gray-500 hover:text-indigo-600 transition-colors">{% translate "Categories" %}</a>
+        <span class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-indigo-600 text-white shadow-md shadow-indigo-600/30">{% translate "Contacts" %}</span>
+        <a href="{% url 'shop:manage_about' %}" class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-white border border-gray-200/80 text-gray-500 hover:text-indigo-600 transition-colors">{% translate "About Page" %}</a>
+    </div>
+
+    <!-- Contact Settings Form -->
+    <section class="bg-white border border-gray-100 rounded-3xl shadow-sm p-6 sm:p-8">
+        <div class="mb-6 pb-4 border-b border-gray-50">
+            <h1 class="text-xl font-black text-gray-950">{% translate "Contact Channels" %}</h1>
+            <p class="text-xs text-gray-400 mt-1">
+                {% translate 'These channels power the public Contact page. When a customer taps "Enquire About This Device" on a product, the product link is sent through whichever channel they pick. Leave a field blank to hide that channel.' %}
+            </p>
+        </div>
+
+        {% if form.errors %}
+        <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs font-semibold space-y-1">
+            <p class="font-bold text-sm">⚠️ {% translate "Please correct errors below:" %}</p>
+            <ul class="list-disc list-inside space-y-0.5">
+                {% for field, errors in form.errors.items %}
+                    <li><strong>{{ field|title }}:</strong> {{ errors|striptags }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form method="POST" class="space-y-5">
+            {% csrf_token %}
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">
+                        <i class="fa-solid fa-envelope text-gray-400 mr-1"></i> {% translate "Email" %}
+                    </label>
+                    {{ form.email }}
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">
+                        <i class="fa-solid fa-phone text-gray-400 mr-1"></i> {% translate "Phone Number" %}
+                    </label>
+                    {{ form.phone_number }}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">
+                        <i class="fa-brands fa-whatsapp text-gray-400 mr-1"></i> {% translate "WhatsApp Number" %}
+                    </label>
+                    {{ form.whatsapp_number }}
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">
+                        <i class="fa-brands fa-telegram text-gray-400 mr-1"></i> {% translate "Telegram Username" %}
+                    </label>
+                    {{ form.telegram_username }}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">
+                        <i class="fa-brands fa-instagram text-gray-400 mr-1"></i> {% translate "Instagram Username" %}
+                    </label>
+                    {{ form.instagram_username }}
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-gray-100 flex items-center justify-end">
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-7 py-3 rounded-xl transition-all shadow-md shadow-indigo-600/30 active:scale-95 uppercase tracking-wider">
+                    <i class="fa-solid fa-floppy-disk"></i> {% translate "Save Contact Channels" %}
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <!-- Live Preview -->
+    <div class="bg-white border border-gray-200/80 rounded-2xl p-6 shadow-sm space-y-3">
+        <h3 class="text-xs font-black uppercase tracking-wider text-gray-900">{% translate "Preview" %}</h3>
+        <p class="text-[10px] text-gray-400 -mt-2">{% translate "What customers will see on the Contact page right now." %}</p>
+        <div class="flex flex-wrap gap-2">
+            {% if form.instance.whatsapp_number %}<span class="text-[10px] font-bold uppercase px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100"><i class="fa-brands fa-whatsapp"></i> {% translate "WhatsApp" %}</span>{% endif %}
+            {% if form.instance.telegram_username %}<span class="text-[10px] font-bold uppercase px-2.5 py-1.5 rounded-lg bg-sky-50 text-sky-600 border border-sky-100"><i class="fa-brands fa-telegram"></i> {% translate "Telegram" %}</span>{% endif %}
+            {% if form.instance.instagram_username %}<span class="text-[10px] font-bold uppercase px-2.5 py-1.5 rounded-lg bg-fuchsia-50 text-fuchsia-600 border border-fuchsia-100"><i class="fa-brands fa-instagram"></i> {% translate "Instagram" %}</span>{% endif %}
+            {% if form.instance.phone_number %}<span class="text-[10px] font-bold uppercase px-2.5 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100"><i class="fa-solid fa-phone"></i> {% translate "Phone" %}</span>{% endif %}
+            {% if form.instance.email %}<span class="text-[10px] font-bold uppercase px-2.5 py-1.5 rounded-lg bg-amber-50 text-amber-600 border border-amber-100"><i class="fa-solid fa-envelope"></i> {% translate "Email" %}</span>{% endif %}
+            {% if not form.instance.whatsapp_number and not form.instance.telegram_username and not form.instance.instagram_username and not form.instance.phone_number and not form.instance.email %}
+                <span class="text-[10px] text-gray-400 italic">{% translate "Nothing configured yet — the Contact page will show an empty-state notice." %}</span>
+            {% endif %}
+        </div>
+        <a href="{% url 'shop:contact_us' %}" target="_blank" class="inline-flex items-center gap-1.5 text-[10px] font-bold text-indigo-600 hover:text-indigo-500 transition-colors">
+            {% translate "Open Contact page" %} <i class="fa-solid fa-arrow-up-right-from-square"></i>
+        </a>
+    </div>
+
+</div>
+{% endblock %}

@@ -5,5 +5,4 @@ class ShopConfig(AppConfig):
     name = 'shop'
 
     def ready(self):
-        # 🔗 Bind receivers dynamically upon app bootstrap initializing sequences
         import shop.signals

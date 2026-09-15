@@ -3,7 +3,7 @@
 {% load i18n %}
 
 {% block title %}
-    {% if product_instance %}{% translate "Update Product" %}{% else %}{% translate "Product Management Hub" %}{% endif %} | TechVault
+    {% if product_instance %}{% translate "Update Product" %}{% else %}{% translate "Manage Webpage" %}{% endif %} | {{ store_name }}
 {% endblock %}
 
 {% block content %}
@@ -13,7 +13,15 @@
     <div class="flex items-center space-x-2 text-xs font-bold text-gray-400 uppercase tracking-wide">
         <a href="{% url 'shop:product_list' %}" class="hover:text-indigo-600 transition-colors">{% translate "Catalog" %}</a>
         <span>/</span>
-        <span class="text-indigo-600">{% translate "Product Management" %}</span>
+        <span class="text-indigo-600">{% translate "Manage Webpage" %}</span>
+    </div>
+
+    <!-- Management Tabs -->
+    <div class="flex items-center gap-2 flex-wrap">
+        <span class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-indigo-600 text-white shadow-md shadow-indigo-600/30">{% translate "Products" %}</span>
+        <a href="{% url 'shop:create_category' %}" class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-white border border-gray-200/80 text-gray-500 hover:text-indigo-600 transition-colors">{% translate "Categories" %}</a>
+        <a href="{% url 'shop:manage_contacts' %}" class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-white border border-gray-200/80 text-gray-500 hover:text-indigo-600 transition-colors">{% translate "Contacts" %}</a>
+        <a href="{% url 'shop:manage_about' %}" class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-white border border-gray-200/80 text-gray-500 hover:text-indigo-600 transition-colors">{% translate "About Page" %}</a>
     </div>
 
     {% if not product_instance and not request.GET.action %}
@@ -38,27 +46,66 @@
 
     </div>
 
-    <!-- Quick List Grid of Existing Products for Easy Clicking -->
-    <div class="bg-white border border-gray-200/80 rounded-2xl p-6 shadow-sm space-y-4">
-        <h3 class="text-xs font-black uppercase tracking-wider text-gray-900">{% translate "Select Asset Directly to Edit" %}</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-72 overflow-y-auto pr-1">
-            {% for p in all_products %}
-            <a href="?action=edit&id={{ p.id }}" class="flex items-center justify-between p-2.5 rounded-xl border border-gray-100 hover:border-indigo-600 hover:bg-indigo-50/20 transition-all group">
-                <div class="flex items-center space-x-3 truncate">
-                    {% if p.image %}
-                        <img src="{{ p.image.url }}" class="w-8 h-8 object-contain rounded-lg bg-gray-50 p-0.5">
-                    {% else %}
-                        <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-[9px] font-bold text-gray-400">IMG</div>
-                    {% endif %}
-                    <div class="truncate">
-                        <p class="text-xs font-black text-gray-900 truncate group-hover:text-indigo-600">{{ p.name }}</p>
-                        <p class="text-[10px] text-gray-400 uppercase font-bold">{{ p.brand }}</p>
+    <!-- Categories: pick one to open its products, scrollable if long -->
+    <div class="bg-white border border-gray-200/80 rounded-2xl p-4 sm:p-6 shadow-sm space-y-4">
+        <div class="flex items-start sm:items-center justify-between gap-3 flex-wrap">
+            <div>
+                <h3 class="text-xs font-black uppercase tracking-wider text-gray-900">{% translate "Products by Category" %}</h3>
+                <p class="text-[10px] text-gray-400 mt-0.5">{% translate "Sold something? Search its #ID, or open its category below and delete it there." %}</p>
+            </div>
+            <form method="GET" class="relative w-full sm:w-auto">
+                <input type="text" name="q" value="{{ search_query }}" placeholder="{% translate 'Search by name, brand, or #ID...' %}"
+                       class="w-full sm:w-64 bg-gray-50 border border-gray-200 rounded-xl pl-8 pr-3 py-2 text-xs font-bold text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+            </form>
+        </div>
+
+        {% regroup all_products by category as category_groups %}
+        <div class="space-y-2.5">
+            {% for group in category_groups %}
+            <div class="border border-gray-100 rounded-xl overflow-hidden">
+                <button type="button" class="category-toggle w-full flex items-center justify-between gap-2 px-3.5 py-2.5 bg-gray-50/70 hover:bg-gray-100 transition-colors text-left">
+                    <span class="text-xs font-black uppercase text-gray-900 tracking-wider truncate">{{ group.grouper.name }}</span>
+                    <span class="flex items-center gap-2 shrink-0">
+                        <span class="text-[10px] font-bold text-gray-400">
+                            {% blocktranslate count counter=group.list|length %}{{ counter }} item{% plural %}{{ counter }} items{% endblocktranslate %}
+                        </span>
+                        <i class="fa-solid fa-chevron-down text-gray-400 text-xs transition-transform duration-200"></i>
+                    </span>
+                </button>
+                <div class="category-panel {% if not search_query %}hidden{% endif %} max-h-80 overflow-y-auto p-3 space-y-2.5 border-t border-gray-100">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        {% for p in group.list %}
+                        <div class="flex items-center justify-between p-2.5 rounded-xl border border-gray-100 hover:border-indigo-600 hover:bg-indigo-50/20 transition-all group">
+                            <a href="?action=edit&id={{ p.id }}" class="flex items-center space-x-3 truncate flex-1 min-w-0">
+                                {% if p.image %}
+                                    <img src="{{ p.image.url }}" class="w-8 h-8 object-contain rounded-lg bg-gray-50 p-0.5 shrink-0">
+                                {% else %}
+                                    <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-[9px] font-bold text-gray-400 shrink-0">IMG</div>
+                                {% endif %}
+                                <div class="truncate">
+                                    <p class="text-xs font-black text-gray-900 truncate group-hover:text-indigo-600">{{ p.name }}</p>
+                                    <p class="text-[10px] text-gray-400 uppercase font-bold">{{ p.brand }} &middot; <span class="text-indigo-500">#{{ p.category_number }}</span></p>
+                                </div>
+                            </a>
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                <a href="?action=edit&id={{ p.id }}" class="text-[11px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1.5 rounded-lg">{% translate "Edit" %}</a>
+                                <form method="POST" action="{% url 'shop:delete_product' p.id %}" onsubmit="return confirm('{% translate "Remove this product from the catalog? This cannot be undone." %}');">
+                                    {% csrf_token %}
+                                    <button type="submit" title="{% translate 'Delete product' %}" class="text-[11px] font-bold text-red-600 bg-red-50 hover:bg-red-100 px-2.5 py-1.5 rounded-lg transition-colors">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endfor %}
                     </div>
                 </div>
-                <span class="text-[11px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">{% translate "Edit" %}</span>
-            </a>
+            </div>
             {% empty %}
-            <p class="text-xs text-gray-400 col-span-full py-4 text-center">{% translate "No active products available in inventory." %}</p>
+            <p class="text-xs text-gray-400 py-4 text-center">
+                {% if search_query %}{% translate "No products match that search." %}{% else %}{% translate "No active products available in inventory." %}{% endif %}
+            </p>
             {% endfor %}
         </div>
     </div>
@@ -98,9 +145,18 @@
                 <div>
                     <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">{% translate "Brand Manufacturer" %}</label>
                     {{ form.brand }}
+                    <datalist id="brand-suggestions">
+                        {% for brand in known_brands %}
+                            <option value="{{ brand }}">
+                        {% endfor %}
+                    </datalist>
+                    <p class="text-[10px] text-gray-400 mt-1">{% translate "Pick a suggestion or type any new brand name." %}</p>
                 </div>
                 <div>
-                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">{% translate "Target Category" %}</label>
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1 flex items-center justify-between">
+                        <span>{% translate "Target Category" %}</span>
+                        <a href="{% url 'shop:create_category' %}" class="text-indigo-600 hover:underline normal-case font-semibold">{% translate "+ New category" %}</a>
+                    </label>
                     {{ form.category }}
                 </div>
             </div>
@@ -108,8 +164,17 @@
             <!-- Row 2: Title & Slug -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">{% translate "Product Title" %}</label>
-                    {{ form.name }}
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">{% translate "Product Title" %}</label>
+                        <div class="lang-tabs flex items-center gap-1" data-group="product-name">
+                            <button type="button" class="lang-tab-btn px-2 py-0.5 rounded text-[10px] font-black bg-indigo-600 text-white" data-lang="en">EN</button>
+                            <button type="button" class="lang-tab-btn px-2 py-0.5 rounded text-[10px] font-black bg-gray-100 text-gray-500" data-lang="ru">RU</button>
+                            <button type="button" class="lang-tab-btn px-2 py-0.5 rounded text-[10px] font-black bg-gray-100 text-gray-500" data-lang="ky">KY</button>
+                        </div>
+                    </div>
+                    <div class="lang-field" data-group="product-name" data-lang="en">{{ form.name }}</div>
+                    <div class="lang-field hidden" data-group="product-name" data-lang="ru">{{ form.name_ru }}</div>
+                    <div class="lang-field hidden" data-group="product-name" data-lang="ky">{{ form.name_ky }}</div>
                 </div>
                 <div>
                     <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">{% translate "URL Slug Handle" %}</label>
@@ -119,46 +184,56 @@
 
             <!-- Row 3: Price -->
             <div>
-                <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">{% translate "Display Pricing (USD)" %}</label>
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">{% translate "Display Pricing (SOM)" %}</label>
                 {{ form.price }}
             </div>
 
             <div>
-                <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">{% translate "Product Description" %}</label>
-                {{ form.description }}
-            </div>
-
-            <!-- Specification Selectors -->
-            <div class="bg-indigo-50/40 rounded-2xl p-5 border border-indigo-100/60 space-y-3">
-                <h3 class="text-xs font-black uppercase text-indigo-900 tracking-wider">📋 {% translate "Device Specifications & Options" %}</h3>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-xs font-bold text-gray-600 uppercase tracking-wide block mb-1">{% translate "RAM Capacity" %}</label>
-                        {{ form.ram_option }}
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-gray-600 uppercase tracking-wide block mb-1">{% translate "Storage Capacity" %}</label>
-                        {{ form.storage_option }}
+                <div class="flex items-center justify-between mb-1">
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">{% translate "Product Description" %}</label>
+                    <div class="lang-tabs flex items-center gap-1" data-group="product-description">
+                        <button type="button" class="lang-tab-btn px-2 py-0.5 rounded text-[10px] font-black bg-indigo-600 text-white" data-lang="en">EN</button>
+                        <button type="button" class="lang-tab-btn px-2 py-0.5 rounded text-[10px] font-black bg-gray-100 text-gray-500" data-lang="ru">RU</button>
+                        <button type="button" class="lang-tab-btn px-2 py-0.5 rounded text-[10px] font-black bg-gray-100 text-gray-500" data-lang="ky">KY</button>
                     </div>
                 </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-xs font-bold text-gray-600 uppercase tracking-wide block mb-1">{% translate "Display / Screen" %}</label>
-                        {{ form.screen_option }}
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-gray-600 uppercase tracking-wide block mb-1">{% translate "Processor / Chipset" %}</label>
-                        {{ form.processor_option }}
-                    </div>
-                </div>
+                <div class="lang-field" data-group="product-description" data-lang="en">{{ form.description }}</div>
+                <div class="lang-field hidden" data-group="product-description" data-lang="ru">{{ form.description_ru }}</div>
+                <div class="lang-field hidden" data-group="product-description" data-lang="ky">{{ form.description_ky }}</div>
             </div>
 
             <!-- Image Upload Box -->
             <div class="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
                 <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1.5">{% translate "Product Showcase Image" %}</label>
                 {{ form.image }}
+                <p class="text-[10px] text-gray-400 mt-1">{% translate "The main photo shown on the catalog and product cards." %}</p>
+            </div>
+
+            <!-- Additional Gallery Photos -->
+            <div class="bg-gray-50/50 rounded-xl p-4 border border-gray-100 space-y-3">
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1.5">{% translate "Additional Photos" %}</label>
+
+                {% if gallery_images %}
+                <div class="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                    {% for photo in gallery_images %}
+                    <div class="relative group">
+                        <div class="w-full aspect-square bg-white rounded-lg border border-gray-200 overflow-hidden">
+                            <img src="{{ photo.image.url }}" class="w-full h-full object-contain p-1">
+                        </div>
+                        <form method="POST" action="{% url 'shop:delete_product_image' photo.id %}" onsubmit="return confirm('{% translate "Remove this photo?" %}');" class="absolute -top-1.5 -right-1.5">
+                            {% csrf_token %}
+                            <button type="submit" title="{% translate 'Remove photo' %}" class="w-5 h-5 rounded-full bg-red-600 hover:bg-red-500 text-white text-[10px] flex items-center justify-center shadow-md transition-colors">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <input type="file" name="extra_images" multiple accept="image/*"
+                       class="text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer">
+                <p class="text-[10px] text-gray-400">{% translate "Select multiple files to add several photos at once. They're added to the gallery below the main image." %}</p>
             </div>
 
             <!-- Action Buttons -->
@@ -199,6 +274,18 @@
             });
             slugInput.addEventListener('input', function() { slugInput.dataset.touched = "true"; });
         }
+
+        // Category accordion: clicking a category name opens/closes its
+        // product list, so a seller browses one category at a time instead
+        // of scrolling past every category's products at once.
+        document.querySelectorAll('.category-toggle').forEach(function (toggle) {
+            toggle.addEventListener('click', function () {
+                const panel = toggle.nextElementSibling;
+                const chevron = toggle.querySelector('.fa-chevron-down');
+                panel.classList.toggle('hidden');
+                if (chevron) chevron.classList.toggle('rotate-180');
+            });
+        });
     });
 </script>
 {% endblock %}

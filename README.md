@@ -1,6 +1,8 @@
 # Mobile Shop Project
 
-A Django storefront for browsing and selling mobile phones, laptops, and tablets. It includes a Django REST API, a FastAPI stock service, and a Flask PDF invoice service.
+A Django storefront for browsing phones, laptops, and tablets. This is a **view-only catalog**: visitors can search, filter, and inspect product specifications, but there is no cart, checkout, or customer account system. Catalog management (adding/editing products) is restricted to staff accounts via Django's own admin login.
+
+It includes a Django REST API and a FastAPI stock-check service for read-only inventory data.
 
 ## Requirements
 
@@ -25,8 +27,6 @@ A Django storefront for browsing and selling mobile phones, laptops, and tablets
 
 3. Copy `.env.example` to `.env` and update the values for your environment.
 
-   For email registration and password verification codes, set `EMAIL_HOST_USER` to the Gmail address that sends mail and `EMAIL_HOST_PASSWORD` to a Gmail app password. Regular Gmail account passwords are not accepted by Gmail SMTP.
-
 4. Start PostgreSQL and Redis, then apply migrations and optionally seed the catalog:
 
    ```powershell
@@ -35,7 +35,13 @@ A Django storefront for browsing and selling mobile phones, laptops, and tablets
    python manage.py seed_db
    ```
 
-5. Start the Django site:
+5. Create a staff account so you can manage the catalog through `/admin/` and the "Manage Products" page:
+
+   ```powershell
+   python manage.py createsuperuser
+   ```
+
+6. Start the Django site:
 
    ```powershell
    python manage.py runserver
@@ -55,7 +61,6 @@ Services:
 
 - Django storefront: <http://127.0.0.1:8000/>
 - FastAPI stock API: <http://127.0.0.1:8001/docs>
-- Flask invoice API: <http://127.0.0.1:8002/apidocs/>
 
 ## Useful commands
 
@@ -69,4 +74,4 @@ The public Django API and schema documentation are available at `/api/`, `/api/s
 
 ## Configuration
 
-Never commit `.env`. Use `.env.example` as the template. In production, provide a strong `SECRET_KEY`, set `DEBUG=False`, configure `ALLOWED_HOSTS`, and use a real email backend. Generated media and invoice PDFs are intentionally ignored by Git.
+Never commit `.env`. Use `.env.example` as the template. In production, provide a strong `SECRET_KEY`, set `DEBUG=False`, configure `ALLOWED_HOSTS`, and use a real email backend if you re-introduce transactional email in the future.

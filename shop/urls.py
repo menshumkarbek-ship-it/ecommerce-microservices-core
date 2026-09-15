@@ -26,26 +26,18 @@ urlpatterns = [
     path('product/<slug:product_slug>/', views.product_detail, name='product_detail'),
     path('product/<slug:product_slug>/specs/', views.product_specs, name='product_specs'),
 
-    # --- Cart & Checkout ---
-    path('cart/', views.cart_detail, name='cart_detail'),
-    path('cart/add/<int:product_id>/', views.cart_add, name='cart_add'),
-    path('cart/remove/<int:product_id>/', views.cart_remove, name='cart_remove'),
-    path('cart/checkout/', views.checkout_order, name='checkout_order'),
-
-    # --- Customer Authentication & Settings ---
-    path('accounts/register/', views.register_customer, name='register'),
-    path('accounts/verify-otp/', views.verify_otp, name='verify_otp'),  # 👈 Added OTP verification route
-    path('accounts/login/', views.login_customer, name='login'),
-    path('accounts/logout/', views.logout_customer, name='logout'),
-    path('profile/settings/', views.account_settings, name='account_settings'),
-    path('profile/payment-methods/', views.payment_method_settings, name='payment_settings'),
-    path('profile/settings/password/', views.change_password, name='change_password'),
-    path('profile/orders/', views.order_history, name='order_history'),
-
-    # --- Management & Auxiliary Pages ---
+    # --- Catalog Management (staff/manager only) ---
     path('management/product/add/', views.create_product, name='create_product'),
     path('management/product/add/<int:product_id>/', views.create_product, name='update_product'),
-    path('management/audit-logs/', views.admin_purchase_history, name='admin_purchase_history'),
+    path('management/product/<int:product_id>/delete/', views.delete_product, name='delete_product'),
+    path('management/product/image/<int:image_id>/delete/', views.delete_product_image, name='delete_product_image'),
+    path('management/category/add/', views.create_category, name='create_category'),
+    path('management/category/<int:category_id>/toggle-hero/', views.toggle_category_hero, name='toggle_category_hero'),
+    path('management/category/<int:category_id>/toggle-newest/', views.toggle_category_newest, name='toggle_category_newest'),
+    path('management/contacts/', views.manage_contacts, name='manage_contacts'),
+    path('management/about/', views.manage_about, name='manage_about'),
+
+    # --- Auxiliary Pages ---
     path('pages/about-us/', views.about_us, name='about_us'),
     path('pages/contact-us/', views.contact_us, name='contact_us'),
 ]
