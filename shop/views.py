@@ -5,7 +5,6 @@ from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.cache import cache
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q, Sum, Count
 from django.utils import timezone
 from django.utils.dates import MONTHS
@@ -146,16 +145,10 @@ def product_list(request, category_slug=None):
 
     available_brands = Product.objects.filter(is_sold=False).order_by('brand').values_list('brand', flat=True).distinct()
 
-    # 🔓 Always paginate the full matching catalog (filtered or not) so visitors
-    # can scroll through every product instead of being capped to a handful
-    # of "top picks" per category. The filter panel above still narrows results.
-    paginator = Paginator(products_list.distinct(), 24)
-    page_number = request.GET.get('page')
-
-    try:
-        products = paginator.page(page_number)
-    except (PageNotAnInteger, EmptyPage):
-        products = paginator.page(1)
+    # The whole matching catalog on one page: the store owner wants every
+    # product visible at once, and at this catalog size (well under a few
+    # hundred rows) one query is cheaper than a pager anyone has to click.
+    products = list(products_list.distinct())
 
     context = {
         'category': category,

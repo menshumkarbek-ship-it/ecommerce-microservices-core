@@ -57,7 +57,7 @@ class StorefrontTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(response.context['has_active_filters'])
-        self.assertEqual(response.context['products'].paginator.count, 5)
+        self.assertEqual(len(response.context['products']), 5)
 
     def test_catalog_filter_narrows_results_but_keeps_pagination(self):
         self.make_product('Matching Phone', 'matching-phone', '100.00')
@@ -75,7 +75,7 @@ class StorefrontTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.context['has_active_filters'])
-        self.assertEqual(response.context['products'].paginator.count, 1)
+        self.assertEqual(len(response.context['products']), 1)
 
     def test_anonymous_visitor_sees_no_settings_link(self):
         response = self.client.get(reverse('shop:home'))
@@ -277,7 +277,7 @@ class StorefrontTests(TestCase):
         product = self.make_product('Phone', 'phone', '250.00')
         self.client.post(reverse('shop:delete_product', args=[product.id]))
 
-        self.assertEqual(self.client.get(reverse('shop:product_list')).context['products'].paginator.count, 0)
+        self.assertEqual(len(self.client.get(reverse('shop:product_list')).context['products']), 0)
         self.assertEqual(self.client.get('/api/products/').json()['results'], [])
 
     def test_api_list_is_paginated_and_avoids_a_query_per_product(self):
