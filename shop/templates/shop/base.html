@@ -119,6 +119,135 @@
             background-color: #ffffff !important;
         }
 
+        /* ---- Light theme: accent colours -------------------------------
+           The dark palette leans on -400 tints for labels and prices; on a
+           white card those wash out, so swap each for its -700 shade. Solid
+           accent buttons keep their white text (the generic text-white rule
+           above would otherwise paint it navy on blue). */
+        .theme-light [class~="bg-indigo-500"][class~="text-white"],
+        .theme-light [class~="bg-indigo-600"][class~="text-white"],
+        .theme-light [class~="bg-cyan-500"][class~="text-white"],
+        .theme-light [class~="bg-cyan-600"][class~="text-white"],
+        .theme-light [class~="bg-emerald-500"][class~="text-white"],
+        .theme-light [class~="bg-emerald-600"][class~="text-white"],
+        .theme-light [class~="bg-purple-500"][class~="text-white"],
+        .theme-light [class~="bg-purple-600"][class~="text-white"],
+        .theme-light [class~="bg-amber-500"][class~="text-white"],
+        .theme-light [class~="bg-amber-600"][class~="text-white"],
+        .theme-light [class~="bg-rose-500"][class~="text-white"],
+        .theme-light [class~="bg-rose-600"][class~="text-white"],
+        .theme-light [class~="bg-sky-500"][class~="text-white"],
+        .theme-light [class~="bg-sky-600"][class~="text-white"],
+        .theme-light [class~="bg-teal-500"][class~="text-white"],
+        .theme-light [class~="bg-teal-600"][class~="text-white"],
+        .theme-light [class~="bg-red-500"][class~="text-white"],
+        .theme-light [class~="bg-red-600"][class~="text-white"] {
+            color: #ffffff !important;
+        }
+
+        .theme-light [class~="text-indigo-300"],
+        .theme-light [class~="text-indigo-400"] {
+            color: #2942c4 !important;
+        }
+
+        .theme-light [class~="text-cyan-300"],
+        .theme-light [class~="text-cyan-400"] {
+            color: #0e7490 !important;
+        }
+
+        .theme-light [class~="text-emerald-300"],
+        .theme-light [class~="text-emerald-400"] {
+            color: #047857 !important;
+        }
+
+        .theme-light [class~="text-purple-300"],
+        .theme-light [class~="text-purple-400"] {
+            color: #7e22ce !important;
+        }
+
+        .theme-light [class~="text-amber-300"],
+        .theme-light [class~="text-amber-400"] {
+            color: #b45309 !important;
+        }
+
+        .theme-light [class~="text-rose-300"],
+        .theme-light [class~="text-rose-400"] {
+            color: #be123c !important;
+        }
+
+        .theme-light [class~="text-sky-300"],
+        .theme-light [class~="text-sky-400"] {
+            color: #0369a1 !important;
+        }
+
+        .theme-light [class~="text-teal-300"],
+        .theme-light [class~="text-teal-400"] {
+            color: #0f766e !important;
+        }
+
+        .theme-light [class~="text-red-300"],
+        .theme-light [class~="text-red-400"] {
+            color: #b91c1c !important;
+        }
+
+        .theme-light [class~="bg-indigo-950/80"],
+        .theme-light [class~="bg-indigo-950/40"] {
+            background-color: #eef2ff !important;
+        }
+
+        .theme-light [class~="border-indigo-800/80"],
+        .theme-light [class~="border-indigo-800/60"] {
+            border-color: #c7d2fe !important;
+        }
+
+        .theme-light [class~="bg-emerald-950/80"] {
+            background-color: #d1fae5 !important;
+        }
+
+        .theme-light [class~="border-emerald-800/80"] {
+            border-color: #6ee7b7 !important;
+        }
+
+        .theme-light [class~="bg-amber-950/60"] {
+            background-color: #fef3c7 !important;
+        }
+
+        .theme-light [class~="border-amber-800/80"] {
+            border-color: #fcd34d !important;
+        }
+
+        /* Hero headline gradient: pastel on black, saturated on white. */
+        .theme-light .heroSwiper [class~="bg-clip-text"] {
+            background-image: linear-gradient(to right, #3557e8, #0284c7, #7c3aed) !important;
+        }
+
+        /* Swiper's default bullets are black at 20% — invisible on the dark
+           hero. Give them an explicit colour in both themes. */
+        .heroSwiper .swiper-pagination-bullet {
+            background-color: #ffffff;
+            opacity: .35;
+        }
+        .heroSwiper .swiper-pagination-bullet-active {
+            background-color: #4a6cf7;
+            opacity: 1;
+        }
+        .theme-light .heroSwiper .swiper-pagination-bullet {
+            background-color: #5f677a;
+        }
+        .theme-light .heroSwiper .swiper-pagination-bullet-active {
+            background-color: #3557e8;
+        }
+
+        /* The About-page CTA banner stays dark in both themes; keep its
+           copy light so it doesn't vanish into the gradient. */
+        .theme-light .cta-banner,
+        .theme-light .cta-banner [class~="text-white"] {
+            color: #ffffff !important;
+        }
+        .theme-light .cta-banner [class~="text-slate-300"] {
+            color: #cbd5e1 !important;
+        }
+
         /* Compact theme switch, sized to sit level with the language select
            next to it. Both icons live inside the track; the knob slides over
            the one for the theme that's currently on, leaving the other dimmed
@@ -268,8 +397,13 @@
         }
 
         .theme-light .product-management .bg-gray-50,
-        .theme-light .product-management .bg-gray-50\/50 {
+        .theme-light .product-management .bg-gray-50\/50,
+        .theme-light .product-management .bg-gray-50\/70 {
             background-color: #f8fafc !important;
+        }
+
+        .theme-light .product-management .bg-gray-100 {
+            background-color: #eceef3 !important;
         }
 
         .theme-light .product-management .text-gray-950,
