@@ -32,10 +32,14 @@ It includes a read-only Django REST API for the catalog.
    ```powershell
    docker compose up -d db
    python manage.py migrate
-   python manage.py seed_db
+   python manage.py seed_catalog
    ```
 
-5. Create a staff account so you can manage the catalog through the admin and the "Manage Products" page:
+   `seed_catalog` fills the store with ~60 gadgets across eight categories (phones, laptops, tablets, headphones, smartwatches, monitors, speakers, accessories), each with a generated illustration you can replace with a real photo from the Settings page. It is safe to re-run: existing categories are reused and products already present (including ones you removed) are skipped. The data lives in `shop/seed/catalog.py`.
+
+   To seed a deployed store, set `SEED_CATALOG=1` in the host's environment for one deploy and then remove it — `build.sh` runs the command after migrations.
+
+5. Create a staff account so you can manage the catalog through the admin and the Settings page:
 
    ```powershell
    python manage.py createsuperuser
