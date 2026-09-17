@@ -1,16 +1,22 @@
+# Python
 venv/
 __pycache__/
-*.pyc
-db.sqlite3
-.idea/
-.vscode/
-media/
-.env
 *.py[cod]
-__pycache__/
+
+# Django
+db.sqlite3
 media/
 staticfiles/
-venv/
-.idea/
 *.log
+
+# Secrets
+.env
+
+# Editors / OS
+.idea/
+.vscode/
 .DS_Store
+
+# Claude Code tooling (session-local, never project source)
+.claude/
+skills-lock.json
