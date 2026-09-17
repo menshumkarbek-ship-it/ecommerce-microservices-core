@@ -12,71 +12,35 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # ⚡ Redis In-Memory Task Broker & Cache
-  redis:
-    image: redis:7-alpine
-    container_name: techvault_redis_container
-    restart: always
-    ports:
-      - "6379:6379"
-
-  # 🐍 Django Primary Monolith & API Gateway
+  # 🐍 Django storefront
   web:
     build: .
-    container_name: techvault_django_monolith
+    container_name: techvault_django
     command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app
     ports:
       - "8000:8000"
     environment:
-      - DB_HOST=db
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/mobile_shop_db
-      - DB_NAME=mobile_shop_db
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - REDIS_URL=redis://redis:6379/0
-      - FASTAPI_SERVICE_URL=http://fastapi_service:8001
-    depends_on:
-      - db
-      - redis
-
-  # ⚙️ Celery Asynchronous Background Task Worker
-  celery_worker:
-    build: .
-    container_name: techvault_celery_worker
-    command: celery -A config worker --loglevel=info
-    volumes:
-      - .:/app
-    environment:
+      - DEBUG=True
+      - SECRET_KEY=local-development-only
+      - ALLOWED_HOSTS=localhost,127.0.0.1
+      # Deliberately not DATABASE_URL: settings parses that with
+      # ssl_require=True for the managed database in production, which a plain
+      # local Postgres container does not speak.
       - DB_HOST=db
       - DB_NAME=mobile_shop_db
       - DB_USER=postgres
       - DB_PASSWORD=postgres
-      - DB_NAME=mobile_shop_db
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/mobile_shop_db
-      - DB_NAME=mobile_shop_db
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - REDIS_URL=redis://redis:6379/0
     depends_on:
-      - web
-      - redis
-
-  # 🚀 FastAPI Stock Engine Microservice (Port 8001)
-  fastapi_service:
-    build: .
-    container_name: techvault_fastapi_service
-    ports:
-      - "8001:8001"
-    command: uvicorn fastapi_service.main:app --host 0.0.0.0 --port 8001
-    environment:
-      - DB_HOST=db
-    depends_on:
-      - db
+      db:
+        condition: service_healthy
 
 volumes:
   postgres_data:

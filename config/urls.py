@@ -5,7 +5,6 @@ from django.conf.urls.static import static
 from django.http import HttpResponse
 from django.contrib.sitemaps.views import sitemap
 from shop.sitemaps import StaticViewSitemap
-from shop import views as shop_views
 
 sitemaps = {
     'static': StaticViewSitemap,
@@ -22,17 +21,17 @@ def robots_txt(request):
     return HttpResponse("\n".join(lines), content_type="text/plain")
 
 urlpatterns = [
-    # 🕵️ Decoy: the old, commonly-guessed /admin/ path no longer serves
-    # Django's built-in admin — it now opens our own in-app management panel
-    # directly (same view as shop:create_product). Anyone/anything probing
-    # /admin/ for a recognizable Django login screen won't find one here;
-    # the real Django admin lives at settings.ADMIN_URL instead (below).
-    path('admin/', shop_views.create_product, name='admin_decoy'),
-
-    # 🔒 Real Django admin, mounted at settings.ADMIN_URL (not /admin/) — see
-    # config/settings.py. Day-to-day product/category/contact edits go
-    # through the in-app management panel instead; this route stays for
-    # user/group management and superuser use.
+    # 🔒 Django admin, mounted at settings.ADMIN_URL rather than /admin/, so
+    # the default path scanners probe simply 404s. Day-to-day product/
+    # category/contact edits go through the in-app management panel instead;
+    # this route stays for user/group management and superuser use.
+    #
+    # There used to be a decoy on /admin/ pointing at the management panel.
+    # It defeated itself: that view is @login_required, so probing /admin/
+    # redirected straight to ADMIN_URL's login page and handed over the very
+    # path it was hiding. Note this is obscurity, not a control — every
+    # protected view still redirects to the real login URL. Treat the admin
+    # as publicly known and put real controls (strong passwords, 2FA) on it.
     path(settings.ADMIN_URL, admin.site.urls),
     path('robots.txt', robots_txt),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
