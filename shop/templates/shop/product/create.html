@@ -46,7 +46,7 @@
         <div class="flex items-start sm:items-center justify-between gap-3 flex-wrap">
             <div>
                 <h3 class="text-xs font-black uppercase tracking-wider text-gray-900">{% translate "Products by Category" %}</h3>
-                <p class="text-[10px] text-gray-400 mt-0.5">{% translate "Sold something? Search its #ID, or open its category below and delete it there." %}</p>
+                <p class="text-[10px] text-gray-400 mt-0.5">{% translate "Sold something? Search its #ID, or open its category below and mark it sold there." %}</p>
             </div>
             <form method="GET" class="relative w-full sm:w-auto">
                 <input type="text" name="q" value="{{ search_query }}" placeholder="{% translate 'Search by name, brand, or #ID...' %}"
@@ -85,9 +85,17 @@
                             </a>
                             <div class="flex items-center gap-1.5 shrink-0 ml-2">
                                 <a href="?action=edit&id={{ p.id }}" class="text-[11px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1.5 rounded-lg">{% translate "Edit" %}</a>
-                                <form method="POST" action="{% url 'shop:delete_product' p.id %}" onsubmit="return confirm('{% translate "Mark this product as sold and remove it from the catalog? You can undo this from &quot;Recently removed&quot;." %}');">
+                                <!-- Two ways off the catalog: "Sold" feeds the sales report, -->
+                                <!-- "Delete" doesn't (mistakes, duplicates). Both are undoable. -->
+                                <form method="POST" action="{% url 'shop:sell_product' p.id %}" onsubmit="return confirm('{% translate "Mark this product as sold? It leaves the catalog and is counted in the sales report. You can undo this from &quot;Recently removed&quot;." %}');">
                                     {% csrf_token %}
-                                    <button type="submit" title="{% translate 'Delete product' %}" class="text-[11px] font-bold text-red-600 bg-red-50 hover:bg-red-100 px-2.5 py-1.5 rounded-lg transition-colors">
+                                    <button type="submit" title="{% translate 'Mark as sold' %}" class="text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1.5 rounded-lg transition-colors">
+                                        <i class="fa-solid fa-cash-register"></i> {% translate "Sold" %}
+                                    </button>
+                                </form>
+                                <form method="POST" action="{% url 'shop:remove_product' p.id %}" onsubmit="return confirm('{% translate "Remove this product from the catalog without recording a sale? You can undo this from &quot;Recently removed&quot;." %}');">
+                                    {% csrf_token %}
+                                    <button type="submit" title="{% translate 'Delete without recording a sale' %}" class="text-[11px] font-bold text-red-600 bg-red-50 hover:bg-red-100 px-2.5 py-1.5 rounded-lg transition-colors">
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
                                 </form>
@@ -106,7 +114,7 @@
 
         {% if removed_products %}
         <!-- Undo affordance for a mis-clicked removal: the listing is kept, -->
-        <!-- so restoring it also drops the sale the removal recorded. -->
+        <!-- so restoring it also drops the sale the removal recorded (if any). -->
         <div class="mt-5 pt-4 border-t border-gray-100">
             <h3 class="text-xs font-black uppercase text-gray-500 tracking-wider mb-2.5">
                 <i class="fa-solid fa-clock-rotate-left text-gray-400 mr-1"></i> {% translate "Recently removed" %}
@@ -115,7 +123,14 @@
                 {% for p in removed_products %}
                 <div class="flex items-center justify-between p-2.5 rounded-xl border border-gray-100 bg-gray-50/50">
                     <div class="truncate flex-1 min-w-0">
-                        <p class="text-xs font-bold text-gray-700 truncate">{{ p.name }}</p>
+                        <p class="text-xs font-bold text-gray-700 truncate">
+                            {{ p.name }}
+                            {% if p.was_sold %}
+                                <span class="ml-1 text-[9px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">{% translate "Sold" %}</span>
+                            {% else %}
+                                <span class="ml-1 text-[9px] font-black uppercase tracking-wider text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">{% translate "Deleted" %}</span>
+                            {% endif %}
+                        </p>
                         <p class="text-[10px] text-gray-400 uppercase font-bold">
                             {{ p.brand }} &middot; {{ p.catalog_code }} &middot; {{ p.deleted_at|date:"d M Y, H:i" }}
                         </p>

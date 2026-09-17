@@ -29,7 +29,8 @@ urlpatterns = [
     # --- Catalog Management (staff/manager only) ---
     path('management/product/add/', views.create_product, name='create_product'),
     path('management/product/add/<int:product_id>/', views.create_product, name='update_product'),
-    path('management/product/<int:product_id>/delete/', views.delete_product, name='delete_product'),
+    path('management/product/<int:product_id>/sold/', views.sell_product, name='sell_product'),
+    path('management/product/<int:product_id>/remove/', views.remove_product, name='remove_product'),
     path('management/product/<int:product_id>/restore/', views.restore_product, name='restore_product'),
     path('management/product/image/<int:image_id>/delete/', views.delete_product_image, name='delete_product_image'),
     path('management/category/add/', views.create_category, name='create_category'),
@@ -38,6 +39,7 @@ urlpatterns = [
     path('management/contacts/', views.manage_contacts, name='manage_contacts'),
     path('management/about/', views.manage_about, name='manage_about'),
     path('management/sales/', views.sales_report, name='sales_report'),
+    path('management/sales/<int:sale_id>/discard/', views.discard_sale, name='discard_sale'),
 
     # --- Auxiliary Pages ---
     path('pages/about-us/', views.about_us, name='about_us'),

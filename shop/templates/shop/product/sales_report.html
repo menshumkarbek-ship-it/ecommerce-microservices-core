@@ -105,6 +105,7 @@
                             <th class="py-2 pr-3">{% translate "Brand" %}</th>
                             <th class="py-2 pr-3">{% translate "Category" %}</th>
                             <th class="py-2 pr-3 text-right">{% translate "Price" %}</th>
+                            <th class="py-2 pl-3 w-8"><span class="sr-only">{% translate "Actions" %}</span></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -116,6 +117,17 @@
                                 <td class="py-2 pr-3 text-gray-500">{{ sale.brand }}</td>
                                 <td class="py-2 pr-3 text-gray-500">{{ sale.category_name }}</td>
                                 <td class="py-2 pr-3 text-right font-black text-gray-950">{{ sale.price }} {% translate "som" %}</td>
+                                <td class="py-2 pl-3 text-right">
+                                    <!-- Marked sold by mistake: strike the row, the product stays removed. -->
+                                    <form method="POST" action="{% url 'shop:discard_sale' sale.id %}" onsubmit="return confirm('{% translate "Strike this sale from the report? The product stays removed from the catalog; restore it from &quot;Recently removed&quot; on the Products tab if it should be back on sale." %}');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="month" value="{{ selected_month }}">
+                                        <input type="hidden" name="year" value="{{ selected_year }}">
+                                        <button type="submit" title="{% translate 'Not a sale — strike from the report' %}" class="text-gray-400 hover:text-red-600 transition-colors px-1">
+                                            <i class="fa-solid fa-xmark"></i>
+                                        </button>
+                                    </form>
+                                </td>
                             </tr>
                         {% endfor %}
                     </tbody>

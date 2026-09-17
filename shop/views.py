@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
@@ -277,9 +277,11 @@ def create_product(request, product_id=None):
     # Recently removed listings, so an accidental removal can be undone from
     # the same page it happened on. Capped at 10 — this is an undo affordance,
     # not an archive browser.
-    removed_products = Product.all_objects.filter(
+    removed_products = list(Product.all_objects.filter(
         deleted_at__isnull=False
-    ).select_related('category').order_by('-deleted_at')[:10]
+    ).select_related('category').order_by('-deleted_at')[:10])
+    for removed in removed_products:
+        removed.was_sold = _sale_for_removal(removed) is not None
 
     context = {
         'form': form,
@@ -293,16 +295,36 @@ def create_product(request, product_id=None):
     return render(request, 'shop/product/create.html', context)
 
 
+def _sale_for_removal(product):
+    """The Sale recorded by the removal that is currently in effect for
+    `product`, or None if that removal was a plain delete. Sale.sold_at is
+    stamped a moment before deleted_at, hence the small tolerance."""
+    if product.deleted_at is None:
+        return None
+    return Sale.objects.filter(
+        product=product, sold_at__gte=product.deleted_at - timedelta(seconds=5),
+    ).order_by('-sold_at', '-id').first()
+
+
+def _remove_from_catalog(product):
+    # Soft delete: the row and its photos stay, so a mis-click can be undone
+    # from "Recently removed" instead of being gone for good.
+    product.deleted_at = timezone.now()
+    product.save(update_fields=['deleted_at'])
+
+
 @login_required
 @user_passes_test(is_admin_or_manager, login_url='shop:product_list', redirect_field_name=None)
 @require_POST
-def delete_product(request, product_id):
+def sell_product(request, product_id):
+    """
+    The listing sold in the physical store — there is no checkout flow —
+    so snapshot it as a Sale and take it off the catalog. The snapshot uses
+    the values as they are right now, so later edits never change a past
+    month's sales report.
+    """
     product = get_object_or_404(Product.objects.select_related('category'), id=product_id)
 
-    # Removing a listing here means it sold in the physical store — there is
-    # no separate checkout/cart flow — so snapshot it as a Sale, using the
-    # values as they are right now so later edits never change a past
-    # month's sales report.
     Sale.objects.create(
         product=product,
         product_name=product.name,
@@ -312,15 +334,30 @@ def delete_product(request, product_id):
         price=product.price,
         sold_by=request.user,
     )
-
-    # Soft delete: the row and its photos stay, so a mis-click can be undone
-    # from "Recently removed" instead of being gone for good.
-    product.deleted_at = timezone.now()
-    product.save(update_fields=['deleted_at'])
+    _remove_from_catalog(product)
 
     messages.success(
         request,
-        _('"%(name)s" was removed from the catalog and recorded as a sale. You can undo this from "Recently removed".')
+        _('"%(name)s" was marked as sold and removed from the catalog. You can undo this from "Recently removed".')
+        % {'name': product.name},
+    )
+    return redirect('shop:create_product')
+
+
+@login_required
+@user_passes_test(is_admin_or_manager, login_url='shop:product_list', redirect_field_name=None)
+@require_POST
+def remove_product(request, product_id):
+    """
+    Take a listing off the catalog without recording a sale — for items
+    added by mistake, duplicates, or stock that left some other way.
+    """
+    product = get_object_or_404(Product.objects, id=product_id)
+    _remove_from_catalog(product)
+
+    messages.success(
+        request,
+        _('"%(name)s" was removed from the catalog (not counted as a sale). You can undo this from "Recently removed".')
         % {'name': product.name},
     )
     return redirect('shop:create_product')
@@ -331,23 +368,43 @@ def delete_product(request, product_id):
 @require_POST
 def restore_product(request, product_id):
     """
-    Undo a removal: puts the listing back in the catalog and drops the Sale
-    row it created, so the monthly report doesn't keep counting a sale that
-    never happened.
+    Undo a removal: puts the listing back in the catalog and, if that
+    removal was recorded as a sale, drops the Sale row too, so the monthly
+    report doesn't keep counting a sale that never happened.
     """
     product = get_object_or_404(Product.all_objects, id=product_id, deleted_at__isnull=False)
 
-    # Undo the sale this removal recorded — the most recent one for the
-    # product, since a listing can be removed and restored more than once.
-    last_sale = Sale.objects.filter(product=product).order_by('-sold_at', '-id').first()
-    if last_sale:
-        last_sale.delete()
+    sale = _sale_for_removal(product)
+    if sale:
+        sale.delete()
 
     product.deleted_at = None
     product.save(update_fields=['deleted_at'])
 
     messages.success(request, _('"%(name)s" is back in the catalog.') % {'name': product.name})
     return redirect('shop:create_product')
+
+
+@login_required
+@user_passes_test(is_admin_or_manager, login_url='shop:product_list', redirect_field_name=None)
+@require_POST
+def discard_sale(request, sale_id):
+    """
+    Strike a row from the sales report — the product was marked sold by
+    mistake. The product itself stays removed; restore it from "Recently
+    removed" if it should be back on sale.
+    """
+    sale = get_object_or_404(Sale, id=sale_id)
+    sale.delete()
+    messages.success(
+        request,
+        _('"%(name)s" was struck from the sales report.') % {'name': sale.product_name},
+    )
+    url = reverse('shop:sales_report')
+    month, year = request.POST.get('month'), request.POST.get('year')
+    if month and year:
+        url += f'?month={month}&year={year}'
+    return redirect(url)
 
 
 @login_required
@@ -483,10 +540,9 @@ def manage_about(request):
 @user_passes_test(is_admin_or_manager, login_url='shop:product_list', redirect_field_name=None)
 def sales_report(request):
     """
-    Monthly sales report built from the Sale records created automatically
-    whenever a product is removed from the catalog (see delete_product) —
-    that removal is how a real-world sale gets recorded, since this store
-    has no separate checkout flow.
+    Monthly sales report built from the Sale records created when a product
+    is marked sold (see sell_product) — that is how a real-world sale gets
+    recorded, since this store has no separate checkout flow.
     """
     today = date.today()
     try:

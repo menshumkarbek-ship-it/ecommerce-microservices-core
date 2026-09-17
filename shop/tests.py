@@ -1,4 +1,5 @@
 import tempfile
+from datetime import timedelta
 from decimal import Decimal
 from io import StringIO
 
@@ -211,12 +212,12 @@ class StorefrontTests(TestCase):
         self.category.refresh_from_db()
         self.assertFalse(self.category.is_featured_in_hero)
 
-    def test_removing_a_product_hides_it_but_keeps_the_row_and_records_a_sale(self):
+    def test_marking_a_product_sold_hides_it_but_keeps_the_row_and_records_a_sale(self):
         staff = User.objects.create_user(username='manager', password='manager-password-123', is_staff=True)
         self.client.force_login(staff)
         product = self.make_product('Phone', 'phone', '250.00')
 
-        self.client.post(reverse('shop:delete_product', args=[product.id]))
+        self.client.post(reverse('shop:sell_product', args=[product.id]))
 
         # Gone from the storefront...
         self.assertFalse(Product.objects.filter(pk=product.pk).exists())
@@ -233,7 +234,7 @@ class StorefrontTests(TestCase):
         staff = User.objects.create_user(username='manager', password='manager-password-123', is_staff=True)
         self.client.force_login(staff)
         product = self.make_product('Phone', 'phone', '250.00')
-        self.client.post(reverse('shop:delete_product', args=[product.id]))
+        self.client.post(reverse('shop:sell_product', args=[product.id]))
 
         self.client.post(reverse('shop:restore_product', args=[product.id]))
 
@@ -242,11 +243,77 @@ class StorefrontTests(TestCase):
         # The sale it recorded must go too, or the month's report stays inflated.
         self.assertEqual(Sale.objects.filter(product=product).count(), 0)
 
+    def test_deleting_a_product_hides_it_without_recording_a_sale(self):
+        staff = User.objects.create_user(username='manager', password='manager-password-123', is_staff=True)
+        self.client.force_login(staff)
+        product = self.make_product('Added by mistake', 'mistake', '250.00')
+
+        self.client.post(reverse('shop:remove_product', args=[product.id]))
+
+        self.assertFalse(Product.objects.filter(pk=product.pk).exists())
+        product.refresh_from_db()
+        self.assertIsNotNone(product.deleted_at)
+        self.assertFalse(Sale.objects.exists())
+
+        # The undo list says which kind of removal it was.
+        response = self.client.get(reverse('shop:create_product'))
+        removed = {p.pk: p for p in response.context['removed_products']}
+        self.assertFalse(removed[product.pk].was_sold)
+
+    def test_restoring_a_deleted_product_leaves_earlier_sales_alone(self):
+        staff = User.objects.create_user(username='manager', password='manager-password-123', is_staff=True)
+        self.client.force_login(staff)
+        product = self.make_product('Phone', 'phone', '250.00')
+        # A genuine sale of a different unit, recorded some time ago.
+        earlier = Sale.objects.create(
+            product=product, product_name='Phone', brand='Brand', category_name='Phones',
+            catalog_code='PHONE-1', price=Decimal('250.00'), sold_by=staff,
+        )
+        Sale.objects.filter(pk=earlier.pk).update(sold_at=timezone.now() - timedelta(days=3))
+
+        self.client.post(reverse('shop:remove_product', args=[product.id]))
+        self.client.post(reverse('shop:restore_product', args=[product.id]))
+
+        self.assertTrue(Product.objects.filter(pk=product.pk).exists())
+        self.assertTrue(Sale.objects.filter(pk=earlier.pk).exists())
+
+    def test_staff_can_strike_a_mistaken_sale_from_the_report(self):
+        staff = User.objects.create_user(username='manager', password='manager-password-123', is_staff=True)
+        self.client.force_login(staff)
+        product = self.make_product('Phone', 'phone', '250.00')
+        self.client.post(reverse('shop:sell_product', args=[product.id]))
+        sale = Sale.objects.get(product=product)
+
+        response = self.client.post(
+            reverse('shop:discard_sale', args=[sale.id]),
+            {'month': sale.sold_at.month, 'year': sale.sold_at.year},
+        )
+
+        self.assertRedirects(
+            response, f"{reverse('shop:sales_report')}?month={sale.sold_at.month}&year={sale.sold_at.year}",
+        )
+        self.assertFalse(Sale.objects.exists())
+        # Striking the sale does not put the product back on sale.
+        self.assertFalse(Product.objects.filter(pk=product.pk).exists())
+
+    def test_regular_user_cannot_strike_a_sale(self):
+        staff = User.objects.create_user(username='manager', password='manager-password-123', is_staff=True)
+        self.client.force_login(staff)
+        product = self.make_product('Phone', 'phone', '250.00')
+        self.client.post(reverse('shop:sell_product', args=[product.id]))
+        sale = Sale.objects.get(product=product)
+        self.client.logout()
+        self.client.force_login(User.objects.create_user(username='shopper', password='shopper-password-123'))
+
+        self.client.post(reverse('shop:discard_sale', args=[sale.id]))
+
+        self.assertTrue(Sale.objects.filter(pk=sale.pk).exists())
+
     def test_regular_user_cannot_restore_a_removed_product(self):
         staff = User.objects.create_user(username='manager', password='manager-password-123', is_staff=True)
         self.client.force_login(staff)
         product = self.make_product('Phone', 'phone', '250.00')
-        self.client.post(reverse('shop:delete_product', args=[product.id]))
+        self.client.post(reverse('shop:sell_product', args=[product.id]))
         self.client.logout()
 
         buyer = User.objects.create_user(username='buyer', password='safe-password-123')
@@ -260,7 +327,7 @@ class StorefrontTests(TestCase):
         staff = User.objects.create_user(username='manager', password='manager-password-123', is_staff=True)
         self.client.force_login(staff)
         removed = self.make_product('Phone', 'phone', '250.00')
-        self.client.post(reverse('shop:delete_product', args=[removed.id]))
+        self.client.post(reverse('shop:sell_product', args=[removed.id]))
 
         self.client.post(reverse('shop:create_product'), {
             'category': self.category.id, 'brand': 'Example', 'name': 'Phone',
@@ -275,7 +342,7 @@ class StorefrontTests(TestCase):
         staff = User.objects.create_user(username='manager', password='manager-password-123', is_staff=True)
         self.client.force_login(staff)
         product = self.make_product('Phone', 'phone', '250.00')
-        self.client.post(reverse('shop:delete_product', args=[product.id]))
+        self.client.post(reverse('shop:sell_product', args=[product.id]))
 
         self.assertEqual(len(self.client.get(reverse('shop:product_list')).context['products']), 0)
         self.assertEqual(self.client.get('/api/products/').json()['results'], [])
