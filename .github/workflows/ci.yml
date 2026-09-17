@@ -61,3 +61,25 @@ jobs:
 
       - name: Build static files
         run: python manage.py collectstatic --no-input
+
+  # Deploys only after `test` passes. Inert until you opt in:
+  #   1. Turn OFF auto-deploy for the service in the Render dashboard —
+  #      while it is on, Render deploys straight from the push and this job
+  #      has nothing left to gate.
+  #   2. Add the service's Deploy Hook URL as the RENDER_DEPLOY_HOOK secret.
+  # With no secret set the step is skipped, so CI stays green either way.
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Trigger Render deploy
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "RENDER_DEPLOY_HOOK not set — skipping (Render is presumably still auto-deploying)."
+            exit 0
+          fi
+          curl --fail --silent --show-error "$HOOK"
+          echo "Deploy triggered."

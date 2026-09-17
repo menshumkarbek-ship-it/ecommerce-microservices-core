@@ -2,12 +2,12 @@
 
 A Django storefront for browsing phones, laptops, and tablets. This is a **view-only catalog**: visitors can search, filter, and inspect product specifications, but there is no cart, checkout, or customer account system. Catalog management (adding/editing products) is restricted to staff accounts via Django's own admin login.
 
-It includes a Django REST API and a FastAPI stock-check service for read-only inventory data.
+It includes a read-only Django REST API for the catalog.
 
 ## Requirements
 
-- Python 3.12+
-- Docker Desktop and Docker Compose (recommended for PostgreSQL and Redis)
+- Python 3.12 (pinned in `runtime.txt`; CI runs the same version)
+- Docker Desktop and Docker Compose (recommended, for PostgreSQL)
 - Git
 
 ## Local setup
@@ -27,15 +27,15 @@ It includes a Django REST API and a FastAPI stock-check service for read-only in
 
 3. Copy `.env.example` to `.env` and update the values for your environment.
 
-4. Start PostgreSQL and Redis, then apply migrations and optionally seed the catalog:
+4. Start PostgreSQL, then apply migrations and optionally seed the catalog:
 
    ```powershell
-   docker compose up -d db redis
+   docker compose up -d db
    python manage.py migrate
    python manage.py seed_db
    ```
 
-5. Create a staff account so you can manage the catalog through `/admin/` and the "Manage Products" page:
+5. Create a staff account so you can manage the catalog through the admin and the "Manage Products" page:
 
    ```powershell
    python manage.py createsuperuser
@@ -60,7 +60,12 @@ docker compose up --build
 Services:
 
 - Django storefront: <http://127.0.0.1:8000/>
-- FastAPI stock API: <http://127.0.0.1:8001/docs>
+- PostgreSQL on port 5432
+
+The Django admin is mounted at `ADMIN_URL` (default `system-console/`), not `/admin/`.
+This keeps the default path scanners probe from returning anything, but it is obscurity
+rather than a control — any protected page still redirects to the real login URL, so treat
+the admin as publicly known and rely on strong credentials.
 
 ## Useful commands
 
@@ -91,6 +96,15 @@ Because the row survives, a removed product keeps its slug and its per-category 
 a replacement listing with the same name gets `-2` appended rather than colliding.
 
 ## Deploying safely
+
+**Render auto-deploys from `main` by default**, which means a push migrates the production
+database within minutes and CI finishes *alongside* the deploy rather than in front of it — a
+red build does not stop the release.
+
+To make tests an actual gate, turn off auto-deploy for the service in the Render dashboard and
+add its Deploy Hook URL as a `RENDER_DEPLOY_HOOK` repository secret. The `deploy` job in
+`.github/workflows/ci.yml` then fires the hook only after the tests pass, and stays skipped
+(green) until you do both.
 
 `build.sh` runs `migrate` against the production database on every deploy. There is no automatic
 backup in front of it, so before shipping a migration that drops or alters a column:
