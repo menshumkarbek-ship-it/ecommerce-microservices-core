@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-15 16:56+0600\n"
+"POT-Creation-Date: 2026-09-17 18:23+0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -61,7 +61,7 @@ msgstr "Бош калтырылса, автоматтык түрдө түзүл�
 msgid "Show as a homepage announcement slide"
 msgstr "Башкы баракта жарнама слайды катары көрсөтүү"
 
-#: .\shop\forms.py:103 .\shop\templates\shop\product\category_create.html:76
+#: .\shop\forms.py:103 .\shop\templates\shop\product\category_create.html:70
 msgid "Show a \"Newest In\" row for this category on the homepage"
 msgstr "Башкы баракта бул категориянын «Жаңылар» блогун көрсөтүү"
 
@@ -133,15 +133,15 @@ msgstr "Кардарларды каталогду көрүүгө же байла
 msgid "Premium Electronics"
 msgstr "Премиум электроника"
 
-#: .\shop\templates\shop\base.html:335 .\shop\templates\shop\base.html:431
+#: .\shop\templates\shop\base.html:335 .\shop\templates\shop\base.html:424
 msgid "Search premium electronics..."
 msgstr "Премиум электроникадан издөө..."
 
-#: .\shop\templates\shop\base.html:349 .\shop\templates\shop\base.html:443
+#: .\shop\templates\shop\base.html:349 .\shop\templates\shop\base.html:436
 msgid "Home"
 msgstr "Башкы бет"
 
-#: .\shop\templates\shop\base.html:353 .\shop\templates\shop\base.html:446
+#: .\shop\templates\shop\base.html:353 .\shop\templates\shop\base.html:439
 #: .\shop\templates\shop\product\about_settings.html:12
 #: .\shop\templates\shop\product\category_create.html:12
 #: .\shop\templates\shop\product\contact_settings.html:12
@@ -151,12 +151,12 @@ msgstr "Башкы бет"
 msgid "Catalog"
 msgstr "Каталог"
 
-#: .\shop\templates\shop\base.html:357 .\shop\templates\shop\base.html:449
+#: .\shop\templates\shop\base.html:357 .\shop\templates\shop\base.html:442
 #: .\shop\templates\shop\footer.html:6 .\shop\templates\shop\pages\about.html:5
 msgid "About Us"
 msgstr "Биз жөнүндө"
 
-#: .\shop\templates\shop\base.html:361 .\shop\templates\shop\base.html:452
+#: .\shop\templates\shop\base.html:361 .\shop\templates\shop\base.html:445
 #: .\shop\templates\shop\footer.html:7
 #: .\shop\templates\shop\pages\contact.html:5
 #: .\shop\templates\shop\pages\contact.html:14
@@ -167,19 +167,13 @@ msgstr "Байланыш"
 msgid "Toggle color theme"
 msgstr "Түс темасын алмаштыруу"
 
-#: .\shop\templates\shop\base.html:394 .\shop\templates\shop\base.html:457
+#: .\shop\templates\shop\base.html:394 .\shop\templates\shop\base.html:450
 #: .\shop\templates\shop\product\create.html:6
 #: .\shop\templates\shop\product\create.html:16
-msgid "Manage Webpage"
-msgstr "Сайтты башкаруу"
+msgid "Settings"
+msgstr "Жөндөөлөр"
 
-#: .\shop\templates\shop\base.html:400 .\shop\templates\shop\base.html:462
-#, fuzzy
-#| msgid "Sign In"
-msgid "Sign Out"
-msgstr "Кирүү"
-
-#: .\shop\templates\shop\base.html:408
+#: .\shop\templates\shop\base.html:401
 msgid "Toggle menu"
 msgstr "Менюну ачуу/жабуу"
 
@@ -207,10 +201,10 @@ msgstr "Атайын баа"
 #: .\shop\templates\shop\home.html:48 .\shop\templates\shop\home.html:110
 #: .\shop\templates\shop\product\detail.html:69
 #: .\shop\templates\shop\product\list.html:142
-#: .\shop\templates\shop\product\sales_report.html:55
-#: .\shop\templates\shop\product\sales_report.html:73
-#: .\shop\templates\shop\product\sales_report.html:90
-#: .\shop\templates\shop\product\sales_report.html:124
+#: .\shop\templates\shop\product\sales_report.html:49
+#: .\shop\templates\shop\product\sales_report.html:67
+#: .\shop\templates\shop\product\sales_report.html:84
+#: .\shop\templates\shop\product\sales_report.html:118
 msgid "som"
 msgstr "сом"
 
@@ -315,28 +309,28 @@ msgstr ""
 "кошо алат."
 
 #: .\shop\templates\shop\pages\contact.html:51
-#: .\shop\templates\shop\product\contact_settings.html:101
+#: .\shop\templates\shop\product\contact_settings.html:95
 msgid "WhatsApp"
 msgstr "WhatsApp"
 
 #: .\shop\templates\shop\pages\contact.html:65
-#: .\shop\templates\shop\product\contact_settings.html:102
+#: .\shop\templates\shop\product\contact_settings.html:96
 msgid "Telegram"
 msgstr "Telegram"
 
 #: .\shop\templates\shop\pages\contact.html:80
-#: .\shop\templates\shop\product\contact_settings.html:103
+#: .\shop\templates\shop\product\contact_settings.html:97
 msgid "Instagram"
 msgstr "Instagram"
 
 #: .\shop\templates\shop\pages\contact.html:94
-#: .\shop\templates\shop\product\contact_settings.html:104
+#: .\shop\templates\shop\product\contact_settings.html:98
 msgid "Phone"
 msgstr "Телефон"
 
 #: .\shop\templates\shop\pages\contact.html:108
-#: .\shop\templates\shop\product\contact_settings.html:52
-#: .\shop\templates\shop\product\contact_settings.html:105
+#: .\shop\templates\shop\product\contact_settings.html:46
+#: .\shop\templates\shop\product\contact_settings.html:99
 msgid "Email"
 msgstr "Email"
 
@@ -350,58 +344,49 @@ msgstr ""
 "автоматтык түрдө алмашуу буферине көчүрүлөт, ошондуктан чат ачылганда аны "
 "чаптай аласыз."
 
+#: .\shop\templates\shop\product\_management_tabs.html:5
+#: .\shop\templates\shop\product\_management_tabs.html:7
+msgid "Products"
+msgstr "Товарлар"
+
+#: .\shop\templates\shop\product\_management_tabs.html:11
+#: .\shop\templates\shop\product\_management_tabs.html:13
+msgid "Categories"
+msgstr "Категориялар"
+
+#: .\shop\templates\shop\product\_management_tabs.html:17
+#: .\shop\templates\shop\product\_management_tabs.html:19
+msgid "Contacts"
+msgstr "Байланыштар"
+
+#: .\shop\templates\shop\product\_management_tabs.html:23
+#: .\shop\templates\shop\product\_management_tabs.html:25
+msgid "About Page"
+msgstr "«Биз жөнүндө» баракчасы"
+
+#: .\shop\templates\shop\product\_management_tabs.html:29
+#: .\shop\templates\shop\product\_management_tabs.html:31
+#: .\shop\templates\shop\product\sales_report.html:5
+#: .\shop\templates\shop\product\sales_report.html:14
+msgid "Sales Report"
+msgstr "Сатуу отчёту"
+
+#: .\shop\templates\shop\product\_management_tabs.html:38
+#, fuzzy
+#| msgid "Sign In"
+msgid "Sign Out"
+msgstr "Кирүү"
+
 #: .\shop\templates\shop\product\about_settings.html:5
 #: .\shop\templates\shop\product\about_settings.html:14
 msgid "About Page Settings"
 msgstr "«Биз жөнүндө» баракчасынын жөндөөлөрү"
 
-#: .\shop\templates\shop\product\about_settings.html:19
-#: .\shop\templates\shop\product\category_create.html:19
-#: .\shop\templates\shop\product\contact_settings.html:19
-#: .\shop\templates\shop\product\create.html:21
-#: .\shop\templates\shop\product\sales_report.html:19
-msgid "Products"
-msgstr "Товарлар"
-
-#: .\shop\templates\shop\product\about_settings.html:20
-#: .\shop\templates\shop\product\category_create.html:20
-#: .\shop\templates\shop\product\contact_settings.html:20
-#: .\shop\templates\shop\product\create.html:22
-#: .\shop\templates\shop\product\sales_report.html:20
-msgid "Categories"
-msgstr "Категориялар"
-
-#: .\shop\templates\shop\product\about_settings.html:21
-#: .\shop\templates\shop\product\category_create.html:21
-#: .\shop\templates\shop\product\contact_settings.html:21
-#: .\shop\templates\shop\product\create.html:23
-#: .\shop\templates\shop\product\sales_report.html:21
-msgid "Contacts"
-msgstr "Байланыштар"
-
-#: .\shop\templates\shop\product\about_settings.html:22
-#: .\shop\templates\shop\product\category_create.html:22
-#: .\shop\templates\shop\product\contact_settings.html:22
-#: .\shop\templates\shop\product\create.html:24
-#: .\shop\templates\shop\product\sales_report.html:22
-msgid "About Page"
-msgstr "«Биз жөнүндө» баракчасы"
-
 #: .\shop\templates\shop\product\about_settings.html:23
-#: .\shop\templates\shop\product\category_create.html:23
-#: .\shop\templates\shop\product\contact_settings.html:23
-#: .\shop\templates\shop\product\create.html:25
-#: .\shop\templates\shop\product\sales_report.html:5
-#: .\shop\templates\shop\product\sales_report.html:14
-#: .\shop\templates\shop\product\sales_report.html:23
-msgid "Sales Report"
-msgstr "Сатуу отчёту"
-
-#: .\shop\templates\shop\product\about_settings.html:29
 msgid "About Us Page"
 msgstr "«Биз жөнүндө» баракчасы"
 
-#: .\shop\templates\shop\product\about_settings.html:31
+#: .\shop\templates\shop\product\about_settings.html:25
 msgid ""
 "Write about your shop and your market here — this is what customers see on "
 "the public About page."
@@ -409,48 +394,48 @@ msgstr ""
 "Бул жерге дүкөнүңүз жана рыногуңуз жөнүндө жазыңыз — муну кардарлар «Биз "
 "жөнүндө» баракчасынан көрөт."
 
-#: .\shop\templates\shop\product\about_settings.html:37
-#: .\shop\templates\shop\product\category_create.html:37
-#: .\shop\templates\shop\product\contact_settings.html:37
-#: .\shop\templates\shop\product\create.html:160
+#: .\shop\templates\shop\product\about_settings.html:31
+#: .\shop\templates\shop\product\category_create.html:31
+#: .\shop\templates\shop\product\contact_settings.html:31
+#: .\shop\templates\shop\product\create.html:154
 msgid "Please correct errors below:"
 msgstr "Төмөндөгү каталарды оңдоңуз:"
 
-#: .\shop\templates\shop\product\about_settings.html:63
+#: .\shop\templates\shop\product\about_settings.html:57
 msgid "Site Identity"
 msgstr "Сайттын аталышы"
 
-#: .\shop\templates\shop\product\about_settings.html:65
+#: .\shop\templates\shop\product\about_settings.html:59
 msgid "Store / Market Name"
 msgstr "Дүкөндүн / рыноктун аты"
 
-#: .\shop\templates\shop\product\about_settings.html:67
+#: .\shop\templates\shop\product\about_settings.html:61
 msgid "Shown in the navbar, browser tab, and footer across the whole site."
 msgstr ""
 "Сайттын менюсунда, браузердин кыртышында жана бардык барактардын төмөнкү "
 "бөлүгүндө көрүнөт."
 
-#: .\shop\templates\shop\product\about_settings.html:73
+#: .\shop\templates\shop\product\about_settings.html:67
 msgid "Page Header"
 msgstr "Баракчанын аталышы"
 
-#: .\shop\templates\shop\product\about_settings.html:76
+#: .\shop\templates\shop\product\about_settings.html:70
 msgid "Badge Text"
 msgstr "Белгинин тексти"
 
-#: .\shop\templates\shop\product\about_settings.html:78
+#: .\shop\templates\shop\product\about_settings.html:72
 msgid "Small pill above the heading. Leave blank to hide it."
 msgstr "Аталыштын үстүндөгү кичине белги. Жашыруу үчүн бош калтырыңыз."
 
-#: .\shop\templates\shop\product\about_settings.html:81
+#: .\shop\templates\shop\product\about_settings.html:75
 msgid "Page Heading"
 msgstr "Баракчанын аталышы"
 
-#: .\shop\templates\shop\product\about_settings.html:86
+#: .\shop\templates\shop\product\about_settings.html:80
 msgid "Your Story"
 msgstr "Сиздин тарыхыңыз"
 
-#: .\shop\templates\shop\product\about_settings.html:88
+#: .\shop\templates\shop\product\about_settings.html:82
 msgid ""
 "Tell customers about your shop and your market — this is the main paragraph "
 "on the page."
@@ -458,68 +443,68 @@ msgstr ""
 "Кардарларга дүкөнүңүз жана рыногуңуз жөнүндө айтып бериңиз — бул баракчадагы "
 "негизги текст."
 
-#: .\shop\templates\shop\product\about_settings.html:94
+#: .\shop\templates\shop\product\about_settings.html:88
 msgid "Visit Us Section"
 msgstr "«Бизге келиңиз» бөлүмү"
 
-#: .\shop\templates\shop\product\about_settings.html:95
+#: .\shop\templates\shop\product\about_settings.html:89
 msgid "Leave all fields in this section blank to hide it entirely."
 msgstr ""
 "Бул бөлүмдү толугу менен жашыруу үчүн бардык талааларды бош калтырыңыз."
 
-#: .\shop\templates\shop\product\about_settings.html:97
+#: .\shop\templates\shop\product\about_settings.html:91
 msgid "Section Heading"
 msgstr "Бөлүмдүн аталышы"
 
-#: .\shop\templates\shop\product\about_settings.html:101
+#: .\shop\templates\shop\product\about_settings.html:95
 msgid "Section Text"
 msgstr "Бөлүмдүн тексти"
 
-#: .\shop\templates\shop\product\about_settings.html:106
+#: .\shop\templates\shop\product\about_settings.html:100
 msgid "Address Line 1"
 msgstr "Дарек, 1-сап"
 
-#: .\shop\templates\shop\product\about_settings.html:110
+#: .\shop\templates\shop\product\about_settings.html:104
 msgid "Address Line 2"
 msgstr "Дарек, 2-сап"
 
-#: .\shop\templates\shop\product\about_settings.html:116
+#: .\shop\templates\shop\product\about_settings.html:110
 msgid "Store Photo"
 msgstr "Дүкөндүн сүрөтү"
 
-#: .\shop\templates\shop\product\about_settings.html:120
+#: .\shop\templates\shop\product\about_settings.html:114
 msgid "Current store photo"
 msgstr "Дүкөндүн учурдагы сүрөтү"
 
-#: .\shop\templates\shop\product\about_settings.html:123
+#: .\shop\templates\shop\product\about_settings.html:117
 msgid "Optional. If left empty, a generic map graphic is shown instead."
 msgstr "Милдеттүү эмес. Бош калтырылса, жалпы карта көрсөтүлөт."
 
-#: .\shop\templates\shop\product\about_settings.html:124
+#: .\shop\templates\shop\product\about_settings.html:118
 msgid "The store photo is shared across all languages."
 msgstr ""
 
-#: .\shop\templates\shop\product\about_settings.html:131
+#: .\shop\templates\shop\product\about_settings.html:125
 msgid "Call to Action Banner"
 msgstr "Чакырык баннери"
 
-#: .\shop\templates\shop\product\about_settings.html:132
+#: .\shop\templates\shop\product\about_settings.html:126
 msgid "Leave both fields blank to hide this banner."
 msgstr "Бул баннерди жашыруу үчүн эки талааны тең бош калтырыңыз."
 
-#: .\shop\templates\shop\product\about_settings.html:134
+#: .\shop\templates\shop\product\about_settings.html:128
 msgid "Banner Heading"
 msgstr "Баннердин аталышы"
 
-#: .\shop\templates\shop\product\about_settings.html:138
+#: .\shop\templates\shop\product\about_settings.html:132
 msgid "Banner Text"
 msgstr "Баннердин тексти"
 
-#: .\shop\templates\shop\product\about_settings.html:148
+#: .\shop\templates\shop\product\about_settings.html:142
 msgid "Open About page"
 msgstr "«Биз жөнүндө» баракчасын ачуу"
 
-#: .\shop\templates\shop\product\about_settings.html:151
+#: .\shop\templates\shop\product\about_settings.html:145
 msgid "Save About Page"
 msgstr "«Биз жөнүндө» баракчасын сактоо"
 
@@ -528,11 +513,11 @@ msgstr "«Биз жөнүндө» баракчасын сактоо"
 msgid "Category Management"
 msgstr "Категорияларды башкаруу"
 
-#: .\shop\templates\shop\product\category_create.html:29
+#: .\shop\templates\shop\product\category_create.html:23
 msgid "Add New Category"
 msgstr "Жаңы категория кошуу"
 
-#: .\shop\templates\shop\product\category_create.html:31
+#: .\shop\templates\shop\product\category_create.html:25
 msgid ""
 "New categories (e.g. Headphones, Powerbanks, Smartwatches) show up "
 "immediately in the catalog filter, and automatically get their own \"Newest "
@@ -542,16 +527,16 @@ msgstr ""
 "каталогдун фильтринде дароо пайда болот жана ичинде кеминде бир товар пайда "
 "болушу менен башкы баракта өз алдынча «Жаңылар» блогун автоматтык түрдө алат."
 
-#: .\shop\templates\shop\product\category_create.html:51
+#: .\shop\templates\shop\product\category_create.html:45
 msgid "Category Name"
 msgstr "Категориянын аты"
 
-#: .\shop\templates\shop\product\category_create.html:63
-#: .\shop\templates\shop\product\create.html:209
+#: .\shop\templates\shop\product\category_create.html:57
+#: .\shop\templates\shop\product\create.html:203
 msgid "URL Slug Handle"
 msgstr "URL-дареги (slug)"
 
-#: .\shop\templates\shop\product\category_create.html:70
+#: .\shop\templates\shop\product\category_create.html:64
 msgid ""
 "Show as a homepage announcement slide (rotates through its newest in-stock "
 "product)"
@@ -559,15 +544,15 @@ msgstr ""
 "Башкы баракта жарнама слайды катары көрсөтүү (кампадагы эң жаңы товарды "
 "алмаштырып турат)"
 
-#: .\shop\templates\shop\product\category_create.html:81
+#: .\shop\templates\shop\product\category_create.html:75
 msgid "Create Category"
 msgstr "Категория түзүү"
 
-#: .\shop\templates\shop\product\category_create.html:89
+#: .\shop\templates\shop\product\category_create.html:83
 msgid "Existing Categories"
 msgstr "Бар болгон категориялар"
 
-#: .\shop\templates\shop\product\category_create.html:90
+#: .\shop\templates\shop\product\category_create.html:84
 msgid ""
 "Toggle the star for the homepage announcement slide, or the row icon to show/"
 "hide its \"Newest In\" row."
@@ -575,27 +560,27 @@ msgstr ""
 "Башкы баракта жарнама слайды үчүн жылдызды, же «Жаңылар» блогун көрсөтүү/"
 "жашыруу үчүн сап белгичесин басыңыз."
 
-#: .\shop\templates\shop\product\category_create.html:102
+#: .\shop\templates\shop\product\category_create.html:96
 msgid "Remove from homepage slideshow"
 msgstr "Башкы баракчадагы слайд-шоудан алып салуу"
 
-#: .\shop\templates\shop\product\category_create.html:106
+#: .\shop\templates\shop\product\category_create.html:100
 msgid "Add to homepage slideshow"
 msgstr "Башкы баракчадагы слайд-шоуга кошуу"
 
-#: .\shop\templates\shop\product\category_create.html:114
+#: .\shop\templates\shop\product\category_create.html:108
 msgid "Hide the Newest In row from the homepage"
 msgstr "«Жаңылар» блогун башкы баракчадан жашыруу"
 
-#: .\shop\templates\shop\product\category_create.html:118
+#: .\shop\templates\shop\product\category_create.html:112
 msgid "Show the Newest In row on the homepage"
 msgstr "«Жаңылар» блогун башкы баракчада көрсөтүү"
 
-#: .\shop\templates\shop\product\category_create.html:126
+#: .\shop\templates\shop\product\category_create.html:120
 msgid "No categories yet."
 msgstr "Азырынча категориялар жок."
 
-#: .\shop\templates\shop\product\category_create.html:129
+#: .\shop\templates\shop\product\category_create.html:123
 msgid ""
 "Need to rename or remove a category? Use the full Django admin panel for "
 "that."
@@ -608,11 +593,11 @@ msgstr ""
 msgid "Contact Settings"
 msgstr "Байланыш жөндөөлөрү"
 
-#: .\shop\templates\shop\product\contact_settings.html:29
+#: .\shop\templates\shop\product\contact_settings.html:23
 msgid "Contact Channels"
 msgstr "Байланыш каналдары"
 
-#: .\shop\templates\shop\product\contact_settings.html:31
+#: .\shop\templates\shop\product\contact_settings.html:25
 msgid ""
 "These channels power the public Contact page. When a customer taps \"Enquire "
 "About This Device\" on a product, the product link is sent through whichever "
@@ -623,56 +608,56 @@ msgstr ""
 "товардын шилтемеси тандаган каналы аркылуу жөнөтүлөт. Каналды жашыруу үчүн "
 "талааны бош калтырыңыз."
 
-#: .\shop\templates\shop\product\contact_settings.html:58
+#: .\shop\templates\shop\product\contact_settings.html:52
 msgid "Phone Number"
 msgstr "Телефон номери"
 
-#: .\shop\templates\shop\product\contact_settings.html:67
+#: .\shop\templates\shop\product\contact_settings.html:61
 msgid "WhatsApp Number"
 msgstr "WhatsApp номери"
 
-#: .\shop\templates\shop\product\contact_settings.html:73
+#: .\shop\templates\shop\product\contact_settings.html:67
 msgid "Telegram Username"
 msgstr "Telegram колдонуучу аты"
 
-#: .\shop\templates\shop\product\contact_settings.html:82
+#: .\shop\templates\shop\product\contact_settings.html:76
 msgid "Instagram Username"
 msgstr "Instagram колдонуучу аты"
 
-#: .\shop\templates\shop\product\contact_settings.html:90
+#: .\shop\templates\shop\product\contact_settings.html:84
 msgid "Save Contact Channels"
 msgstr "Байланыш каналдарын сактоо"
 
-#: .\shop\templates\shop\product\contact_settings.html:98
+#: .\shop\templates\shop\product\contact_settings.html:92
 msgid "Preview"
 msgstr "Алдын ала көрүү"
 
-#: .\shop\templates\shop\product\contact_settings.html:99
+#: .\shop\templates\shop\product\contact_settings.html:93
 msgid "What customers will see on the Contact page right now."
 msgstr "Кардарлар байланыш баракчасында азыр эмнени көрөрү."
 
-#: .\shop\templates\shop\product\contact_settings.html:107
+#: .\shop\templates\shop\product\contact_settings.html:101
 msgid ""
 "Nothing configured yet — the Contact page will show an empty-state notice."
 msgstr ""
 "Азырынча эч нерсе туураланган эмес — байланыш баракчасында бош абал жөнүндө "
 "эскертүү көрсөтүлөт."
 
-#: .\shop\templates\shop\product\contact_settings.html:111
+#: .\shop\templates\shop\product\contact_settings.html:105
 msgid "Open Contact page"
 msgstr "Байланыш баракчасын ачуу"
 
 #: .\shop\templates\shop\product\create.html:6
-#: .\shop\templates\shop\product\create.html:149
+#: .\shop\templates\shop\product\create.html:143
 msgid "Update Product"
 msgstr "Товарды өзгөртүү"
 
-#: .\shop\templates\shop\product\create.html:37
-#: .\shop\templates\shop\product\create.html:149
+#: .\shop\templates\shop\product\create.html:31
+#: .\shop\templates\shop\product\create.html:143
 msgid "Add New Product"
 msgstr "Жаңы товар кошуу"
 
-#: .\shop\templates\shop\product\create.html:40
+#: .\shop\templates\shop\product\create.html:34
 msgid ""
 "Publish a brand new electronic asset, specify its brand, category, pricing, "
 "and upload product assets."
@@ -680,15 +665,15 @@ msgstr ""
 "Жаңы товарды жарыялаңыз: брендин, категориясын, баасын көрсөтүп, сүрөттөрүн "
 "жүктөңүз."
 
-#: .\shop\templates\shop\product\create.html:44
+#: .\shop\templates\shop\product\create.html:38
 msgid "Launch Form"
 msgstr "Форманы ачуу"
 
-#: .\shop\templates\shop\product\create.html:54
+#: .\shop\templates\shop\product\create.html:48
 msgid "Products by Category"
 msgstr "Категория боюнча товарлар"
 
-#: .\shop\templates\shop\product\create.html:55
+#: .\shop\templates\shop\product\create.html:49
 msgid ""
 "Sold something? Search its #ID, or open its category below and delete it "
 "there."
@@ -696,103 +681,105 @@ msgstr ""
 "Бир нерсе сатылдыбы? Товарды #ID боюнча табыңыз же анын категориясын "
 "төмөндөн ачып, ошол жерден өчүрүңүз."
 
-#: .\shop\templates\shop\product\create.html:58
+#: .\shop\templates\shop\product\create.html:52
 msgid "Search by name, brand, or #ID..."
 msgstr "Аты, бренди же #ID боюнча издөө..."
 
-#: .\shop\templates\shop\product\create.html:72
+#: .\shop\templates\shop\product\create.html:66
 #, python-format
 msgid "%(counter)s item"
 msgid_plural "%(counter)s items"
 msgstr[0] "%(counter)s товар"
 
-#: .\shop\templates\shop\product\create.html:93
+#: .\shop\templates\shop\product\create.html:87
 msgid "Edit"
 msgstr "Өзгөртүү"
 
-#: .\shop\templates\shop\product\create.html:94
+#: .\shop\templates\shop\product\create.html:88
 msgid ""
 "Mark this product as sold and remove it from the catalog? You can undo this "
 "from &quot;Recently removed&quot;."
-msgstr "Товарды сатылды деп белгилеп, каталогдон алып салабызбы? «Жакында өчүрүлгөндөр» бөлүмүнөн кайтарууга болот."
+msgstr ""
+"Товарды сатылды деп белгилеп, каталогдон алып салабызбы? «Жакында "
+"өчүрүлгөндөр» бөлүмүнөн кайтарууга болот."
 
-#: .\shop\templates\shop\product\create.html:96
+#: .\shop\templates\shop\product\create.html:90
 msgid "Delete product"
 msgstr "Товарды өчүрүү"
 
-#: .\shop\templates\shop\product\create.html:108
+#: .\shop\templates\shop\product\create.html:102
 msgid "No products match that search."
 msgstr "Бул сурам боюнча товар табылган жок."
 
-#: .\shop\templates\shop\product\create.html:108
+#: .\shop\templates\shop\product\create.html:102
 msgid "No active products available in inventory."
 msgstr "Кампада активдүү товар жок."
 
-#: .\shop\templates\shop\product\create.html:118
+#: .\shop\templates\shop\product\create.html:112
 msgid "Recently removed"
 msgstr "Жакында өчүрүлгөндөр"
 
-#: .\shop\templates\shop\product\create.html:132
+#: .\shop\templates\shop\product\create.html:126
 msgid "Restore"
 msgstr "Калыбына келтирүү"
 
-#: .\shop\templates\shop\product\create.html:147
+#: .\shop\templates\shop\product\create.html:141
 msgid "Back to Management Hub"
 msgstr "Башкаруу панелине кайтуу"
 
-#: .\shop\templates\shop\product\create.html:153
+#: .\shop\templates\shop\product\create.html:147
 msgid "Authorized Portal"
 msgstr "Ыйгарым укуктуу портал"
 
-#: .\shop\templates\shop\product\create.html:175
+#: .\shop\templates\shop\product\create.html:169
 msgid "Brand Manufacturer"
 msgstr "Бренд-өндүрүүчү"
 
-#: .\shop\templates\shop\product\create.html:182
+#: .\shop\templates\shop\product\create.html:176
 msgid "Pick a suggestion or type any new brand name."
 msgstr "Тизмеден тандаңыз же жаңы бренддин атын жазыңыз."
 
-#: .\shop\templates\shop\product\create.html:186
+#: .\shop\templates\shop\product\create.html:180
 msgid "Target Category"
 msgstr "Тандалган категория"
 
-#: .\shop\templates\shop\product\create.html:187
+#: .\shop\templates\shop\product\create.html:181
 msgid "+ New category"
 msgstr "+ Жаңы категория"
 
-#: .\shop\templates\shop\product\create.html:197
+#: .\shop\templates\shop\product\create.html:191
 msgid "Product Title"
 msgstr "Товардын аты"
 
-#: .\shop\templates\shop\product\create.html:216
+#: .\shop\templates\shop\product\create.html:210
 msgid "Display Pricing (SOM)"
 msgstr "Көрсөтүлүүчү баа (сом менен)"
 
-#: .\shop\templates\shop\product\create.html:222
+#: .\shop\templates\shop\product\create.html:216
 msgid "Product Description"
 msgstr "Товардын сүрөттөлүшү"
 
-#: .\shop\templates\shop\product\create.html:236
+#: .\shop\templates\shop\product\create.html:230
 msgid "Product Showcase Image"
 msgstr "Товардын негизги сүрөтү"
 
-#: .\shop\templates\shop\product\create.html:238
+#: .\shop\templates\shop\product\create.html:232
 msgid "The main photo shown on the catalog and product cards."
 msgstr "Каталогдо жана товар карточкаларында көрсөтүлүүчү негизги сүрөт."
 
-#: .\shop\templates\shop\product\create.html:243
+#: .\shop\templates\shop\product\create.html:237
 msgid "Additional Photos"
 msgstr "Кошумча сүрөттөр"
 
-#: .\shop\templates\shop\product\create.html:252
+#: .\shop\templates\shop\product\create.html:246
 msgid "Remove this photo?"
 msgstr "Бул сүрөттү өчүрөсүзбү?"
 
-#: .\shop\templates\shop\product\create.html:254
+#: .\shop\templates\shop\product\create.html:248
 msgid "Remove photo"
 msgstr "Сүрөттү өчүрүү"
 
-#: .\shop\templates\shop\product\create.html:265
+#: .\shop\templates\shop\product\create.html:259
 msgid ""
 "Select multiple files to add several photos at once. They're added to the "
 "gallery below the main image."
@@ -800,15 +787,15 @@ msgstr ""
 "Бир нече сүрөттү бир жолу кошуу үчүн бир нече файлды тандаңыз. Алар негизги "
 "сүрөттүн астындагы галереяга кошулат."
 
-#: .\shop\templates\shop\product\create.html:271
+#: .\shop\templates\shop\product\create.html:265
 msgid "Cancel"
 msgstr "Жокко чыгаруу"
 
-#: .\shop\templates\shop\product\create.html:274
+#: .\shop\templates\shop\product\create.html:268
 msgid "Save Changes"
 msgstr "Өзгөртүүлөрдү сактоо"
 
-#: .\shop\templates\shop\product\create.html:274
+#: .\shop\templates\shop\product\create.html:268
 msgid "Register Product"
 msgstr "Товарды каттоо"
 
@@ -829,7 +816,7 @@ msgid "Verified Asset Price"
 msgstr "Текшерилген баа"
 
 #: .\shop\templates\shop\product\detail.html:72
-#: .\shop\templates\shop\product\sales_report.html:110
+#: .\shop\templates\shop\product\sales_report.html:104
 msgid "Catalog ID"
 msgstr "Каталогдогу ID"
 
@@ -889,7 +876,7 @@ msgid "All Brands"
 msgstr "Бардык бренддер"
 
 #: .\shop\templates\shop\product\list.html:69
-#: .\shop\templates\shop\product\sales_report.html:113
+#: .\shop\templates\shop\product\sales_report.html:107
 msgid "Price"
 msgstr "Баасы"
 
@@ -940,65 +927,65 @@ msgstr "%(total)s ичинен %(current)s-барак"
 msgid "Next"
 msgstr "Кийинки"
 
-#: .\shop\templates\shop\product\sales_report.html:30
+#: .\shop\templates\shop\product\sales_report.html:24
 msgid "Month"
 msgstr "Ай"
 
-#: .\shop\templates\shop\product\sales_report.html:38
+#: .\shop\templates\shop\product\sales_report.html:32
 msgid "Year"
 msgstr "Жыл"
 
-#: .\shop\templates\shop\product\sales_report.html:46
+#: .\shop\templates\shop\product\sales_report.html:40
 msgid "View Report"
 msgstr "Отчётту көрүү"
 
-#: .\shop\templates\shop\product\sales_report.html:54
+#: .\shop\templates\shop\product\sales_report.html:48
 msgid "Total Revenue"
 msgstr "Жалпы түшүм"
 
-#: .\shop\templates\shop\product\sales_report.html:58
+#: .\shop\templates\shop\product\sales_report.html:52
 msgid "Items Sold"
 msgstr "Сатылган товарлар"
 
-#: .\shop\templates\shop\product\sales_report.html:66
+#: .\shop\templates\shop\product\sales_report.html:60
 msgid "By Category"
 msgstr "Категориялар боюнча"
 
-#: .\shop\templates\shop\product\sales_report.html:72
-#: .\shop\templates\shop\product\sales_report.html:89
+#: .\shop\templates\shop\product\sales_report.html:66
+#: .\shop\templates\shop\product\sales_report.html:83
 msgid "pcs"
 msgstr "даана"
 
-#: .\shop\templates\shop\product\sales_report.html:78
-#: .\shop\templates\shop\product\sales_report.html:95
+#: .\shop\templates\shop\product\sales_report.html:72
+#: .\shop\templates\shop\product\sales_report.html:89
 msgid "No sales in this period."
 msgstr "Бул мезгилде сатуу жок."
 
-#: .\shop\templates\shop\product\sales_report.html:83
+#: .\shop\templates\shop\product\sales_report.html:77
 msgid "By Brand"
 msgstr "Бренддер боюнча"
 
-#: .\shop\templates\shop\product\sales_report.html:102
+#: .\shop\templates\shop\product\sales_report.html:96
 msgid "Sales in This Period"
 msgstr "Мезгилдеги сатуулар"
 
-#: .\shop\templates\shop\product\sales_report.html:108
+#: .\shop\templates\shop\product\sales_report.html:102
 msgid "Date"
 msgstr "Күнү"
 
-#: .\shop\templates\shop\product\sales_report.html:109
+#: .\shop\templates\shop\product\sales_report.html:103
 msgid "Product"
 msgstr "Товар"
 
-#: .\shop\templates\shop\product\sales_report.html:111
+#: .\shop\templates\shop\product\sales_report.html:105
 msgid "Brand"
 msgstr "Бренд"
 
-#: .\shop\templates\shop\product\sales_report.html:112
+#: .\shop\templates\shop\product\sales_report.html:106
 msgid "Category"
 msgstr "Категория"
 
-#: .\shop\templates\shop\product\sales_report.html:131
+#: .\shop\templates\shop\product\sales_report.html:125
 msgid "No sales recorded for this period yet."
 msgstr "Бул мезгил үчүн сатуулар азырынча катталган жок."
 
@@ -1014,45 +1001,47 @@ msgstr "Товарга кайтуу"
 msgid "No technical specifications have been provided for this product."
 msgstr "Бул товар үчүн техникалык мүнөздөмөлөр көрсөтүлгөн эмес."
 
-#: .\shop\views.py:194
+#: .\shop\views.py:206
 #, python-format
 msgid "Hi! I'm interested in the %(name)s (%(url)s). Is it still available?"
 msgstr "Салам! Мени %(name)s (%(url)s) кызыктырат. Ал дагы эле барбы?"
 
-#: .\shop\views.py:200
+#: .\shop\views.py:212
 #, python-format
 msgid "Hi! I have a question about a product at %(site_name)s."
 msgstr "Салам! Менде %(site_name)s дүкөнүндөгү товар боюнча суроо бар."
 
-#: .\shop\views.py:245
+#: .\shop\views.py:257
 msgid "Product successfully updated!"
 msgstr "Товар ийгиликтүү жаңыртылды!"
 
-#: .\shop\views.py:247
+#: .\shop\views.py:259
 msgid "Product successfully cataloged!"
 msgstr "Товар каталогго ийгиликтүү кошулду!"
 
-#: .\shop\views.py:250 .\shop\views.py:370
+#: .\shop\views.py:262 .\shop\views.py:382
 msgid "Please correct the entry errors down below."
 msgstr "Төмөндөгү киргизүү каталарын оңдоңуз."
 
-#: .\shop\views.py:318
+#: .\shop\views.py:330
 #, python-format
 msgid ""
 "\"%(name)s\" was removed from the catalog and recorded as a sale. You can "
 "undo this from \"Recently removed\"."
-msgstr "«%(name)s» каталогдон алынды жана сатуу катары жазылды. «Жакында өчүрүлгөндөр» бөлүмүнөн кайтарууга болот."
+msgstr ""
+"«%(name)s» каталогдон алынды жана сатуу катары жазылды. «Жакында "
+"өчүрүлгөндөр» бөлүмүнөн кайтарууга болот."
 
-#: .\shop\views.py:344
+#: .\shop\views.py:356
 #, python-format
 msgid "\"%(name)s\" is back in the catalog."
 msgstr "«%(name)s» кайра каталогдо."
 
-#: .\shop\views.py:356
+#: .\shop\views.py:368
 msgid "Photo removed from the gallery."
 msgstr "Сүрөт галереядан өчүрүлдү."
 
-#: .\shop\views.py:367
+#: .\shop\views.py:379
 msgid ""
 "Category created! It now appears in the catalog filter and will get its own "
 "homepage row once it has products."
@@ -1060,35 +1049,35 @@ msgstr ""
 "Категория түзүлдү! Ал эми каталогдун фильтринде көрүнөт жана ичинде товарлар "
 "пайда болушу менен башкы баракта өз алдынча блок алат."
 
-#: .\shop\views.py:392
+#: .\shop\views.py:404
 #, python-format
 msgid "\"%(name)s\" added to the homepage announcement slideshow."
 msgstr "«%(name)s» башкы баракчадагы жарнама слайд-шоусуна кошулду."
 
-#: .\shop\views.py:394
+#: .\shop\views.py:406
 #, python-format
 msgid "\"%(name)s\" removed from the homepage announcement slideshow."
 msgstr "«%(name)s» башкы баракчадагы жарнама слайд-шоусунан алынып салынды."
 
-#: .\shop\views.py:408
+#: .\shop\views.py:420
 #, python-format
 msgid "\"%(name)s\" now has a \"Newest In\" row on the homepage."
 msgstr "«%(name)s» эми башкы баракчада «Жаңылар» блогуна ээ."
 
-#: .\shop\views.py:410
+#: .\shop\views.py:422
 #, python-format
 msgid "\"%(name)s\"'s \"Newest In\" row is hidden from the homepage."
 msgstr "«%(name)s» үчүн «Жаңылар» блогу башкы баракчадан жашырылды."
 
-#: .\shop\views.py:429
+#: .\shop\views.py:441
 msgid "Contact channels updated!"
 msgstr "Байланыш каналдары жаңыртылды!"
 
-#: .\shop\views.py:432 .\shop\views.py:455
+#: .\shop\views.py:444 .\shop\views.py:467
 msgid "Please correct the entry errors below."
 msgstr "Төмөндөгү киргизүү каталарын оңдоңуз."
 
-#: .\shop\views.py:452
+#: .\shop\views.py:464
 msgid "About page updated!"
 msgstr "«Биз жөнүндө» баракчасы жаңыртылды!"
 
@@ -1132,6 +1121,9 @@ msgstr "Кирүү"
 #: .\templates\admin\login.html:96
 msgid "Back to store"
 msgstr "Дүкөнгө кайтуу"
+
+#~ msgid "Manage Webpage"
+#~ msgstr "Сайтты башкаруу"
 
 #~ msgid "Remove this product from the catalog? This cannot be undone."
 #~ msgstr ""

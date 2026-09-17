@@ -72,18 +72,22 @@ class StorefrontTests(TestCase):
         self.assertTrue(response.context['has_active_filters'])
         self.assertEqual(response.context['products'].paginator.count, 1)
 
-    def test_anonymous_visitor_sees_no_admin_management_link(self):
+    def test_anonymous_visitor_sees_no_settings_link(self):
         response = self.client.get(reverse('shop:home'))
 
-        self.assertNotContains(response, 'Manage Webpage')
+        self.assertNotContains(response, reverse('shop:create_product'))
 
-    def test_staff_sees_management_link(self):
+    def test_staff_sees_settings_link_and_sign_out_lives_inside_it(self):
         staff = User.objects.create_user(username='manager', password='manager-password-123', is_staff=True)
         self.client.force_login(staff)
 
-        response = self.client.get(reverse('shop:home'))
+        home = self.client.get(reverse('shop:home'))
+        self.assertContains(home, reverse('shop:create_product'))
+        # Sign Out moved off the navbar into the Settings hub.
+        self.assertNotContains(home, reverse('admin:logout'))
 
-        self.assertContains(response, 'Manage Webpage')
+        hub = self.client.get(reverse('shop:create_product'))
+        self.assertContains(hub, reverse('admin:logout'))
 
     def test_manager_group_member_can_reach_add_product_page(self):
         manager = User.objects.create_user(username='group-manager', password='manager-password-123')

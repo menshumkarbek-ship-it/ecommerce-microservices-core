@@ -14,14 +14,8 @@
         <span class="text-indigo-600">{% translate "Sales Report" %}</span>
     </div>
 
-    <!-- Management Tabs -->
-    <div class="flex items-center gap-2 flex-wrap">
-        <a href="{% url 'shop:create_product' %}" class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-white border border-gray-200/80 text-gray-500 hover:text-indigo-600 transition-colors">{% translate "Products" %}</a>
-        <a href="{% url 'shop:create_category' %}" class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-white border border-gray-200/80 text-gray-500 hover:text-indigo-600 transition-colors">{% translate "Categories" %}</a>
-        <a href="{% url 'shop:manage_contacts' %}" class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-white border border-gray-200/80 text-gray-500 hover:text-indigo-600 transition-colors">{% translate "Contacts" %}</a>
-        <a href="{% url 'shop:manage_about' %}" class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-white border border-gray-200/80 text-gray-500 hover:text-indigo-600 transition-colors">{% translate "About Page" %}</a>
-        <span class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-indigo-600 text-white shadow-md shadow-indigo-600/30">{% translate "Sales Report" %}</span>
-    </div>
+    <!-- Settings hub tabs (shared strip, see _management_tabs.html) -->
+    {% include 'shop/product/_management_tabs.html' with active='sales' %}
 
     <!-- Month Filter -->
     <section class="bg-white border border-gray-100 rounded-3xl shadow-sm p-6 sm:p-8">

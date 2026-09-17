@@ -385,21 +385,14 @@
                         </span>
                     </button>
 
-                    <!-- 🛡️ STAFF-ONLY MANAGEMENT LINK (this is a view-only storefront: no cart, checkout, or customer accounts) -->
-                    <!-- Categories/Contacts/About Page live as tabs inside this hub (shop:create_product) -->
-                    <!-- instead of separate top-nav buttons, to keep the navbar from getting crowded. -->
+                    <!-- 🛡️ STAFF-ONLY SETTINGS LINK (this is a view-only storefront: no cart, checkout, or customer accounts) -->
+                    <!-- Products/Categories/Contacts/About/Sales Report and Sign Out all live as tabs -->
+                    <!-- inside this one hub (shop:create_product), keeping the navbar to a single button. -->
                     {% if request.user.is_authenticated and is_admin_user %}
                         <a href="{% url 'shop:create_product' %}" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-indigo-950/80 border border-indigo-800/80 hover:border-indigo-500 text-indigo-400 rounded-xl text-xs font-bold transition-all shadow-md">
-                            <i class="fa-solid fa-sliders"></i>
-                            <span>{% translate "Manage Webpage" %}</span>
+                            <i class="fa-solid fa-gear"></i>
+                            <span>{% translate "Settings" %}</span>
                         </a>
-                        <form method="POST" action="{% url 'admin:logout' %}" class="hidden lg:block">
-                            {% csrf_token %}
-                            <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-800/80 hover:bg-red-950/60 border border-slate-700/80 hover:border-red-800/80 text-slate-300 hover:text-red-400 rounded-xl text-xs font-bold transition-all">
-                                <i class="fa-solid fa-right-from-bracket"></i>
-                                <span>{% translate "Sign Out" %}</span>
-                            </button>
-                        </form>
                     {% endif %}
 
                     <!-- Mobile menu toggle: reveals Home/Catalog/About/Contact (and, for -->
@@ -452,16 +445,10 @@
                     {% translate "Contact" %}
                 </a>
                 {% if request.user.is_authenticated and is_admin_user %}
-                <div class="pt-2 mt-2 border-t border-slate-800/80 space-y-1">
+                <div class="pt-2 mt-2 border-t border-slate-800/80">
                     <a href="{% url 'shop:create_product' %}" class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-indigo-400 bg-indigo-950/40 hover:bg-indigo-950/60">
-                        <i class="fa-solid fa-sliders text-xs"></i> {% translate "Manage Webpage" %}
+                        <i class="fa-solid fa-gear text-xs"></i> {% translate "Settings" %}
                     </a>
-                    <form method="POST" action="{% url 'admin:logout' %}">
-                        {% csrf_token %}
-                        <button type="submit" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/60 hover:text-red-400 text-left">
-                            <i class="fa-solid fa-right-from-bracket text-xs"></i> {% translate "Sign Out" %}
-                        </button>
-                    </form>
                 </div>
                 {% endif %}
             </div>
