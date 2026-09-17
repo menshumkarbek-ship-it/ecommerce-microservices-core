@@ -1,5 +1,5 @@
 from io import BytesIO
-from PIL import Image, ImageOps
+from PIL import Image, ImageChops, ImageOps
 from django.core.files.base import ContentFile
 from django.utils.text import slugify
 from django.utils.translation import get_language
@@ -73,20 +73,23 @@ def process_no_bg_image(image_field_file, filename_prefix):
     if img.mode != 'RGBA':
         img = img.convert('RGBA')
 
-    datas = img.getdata()
-    new_data = []
-    for item in datas:
-        if item[0] > 240 and item[1] > 240 and item[2] > 240:
-            new_data.append((255, 255, 255, 0))
-        else:
-            new_data.append(item)
+    # Clear the alpha wherever all three channels are near-white. This used to
+    # be a per-pixel Python loop over the full image, running synchronously
+    # inside Product.save() and so inside the request — half a million
+    # iterations per upload. These band operations produce the same result
+    # entirely in Pillow's C layer. `point()` builds a 256-entry lookup table
+    # rather than calling the lambda per pixel, and `darker` (per-pixel min)
+    # acts as a logical AND across the three 0/255 masks.
+    red, green, blue, alpha = img.split()
+    to_mask = lambda band: band.point(lambda value: 255 if value > 240 else 0)
+    near_white = ImageChops.darker(ImageChops.darker(to_mask(red), to_mask(green)), to_mask(blue))
+    img.putalpha(ImageChops.subtract(alpha, near_white))
 
-    img.putdata(new_data)
     canvas_size = (700, 700)
     cropped_img = ImageOps.fit(img, canvas_size, method=Image.Resampling.LANCZOS, centering=(0.5, 0.5))
 
     buffer = BytesIO()
-    cropped_img.save(buffer, format='PNG', quality=90)
+    cropped_img.save(buffer, format='PNG')
     buffer.seek(0)
 
     filename = f"{filename_prefix}_nobg.png"

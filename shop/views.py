@@ -19,30 +19,47 @@ from .forms import ProductCreateForm, CategoryCreateForm, ContactSettingsForm, A
 # category's "Newest In" slideshow gets a distinct look automatically.
 CATEGORY_ACCENT_PALETTE = ['indigo', 'cyan', 'emerald', 'purple', 'amber', 'rose', 'sky', 'teal']
 
+CATEGORIES_CACHE_KEY = 'global_store_categories'
+# Short on purpose — see the note on SETTINGS_CACHE_TIMEOUT in
+# context_processors: the cache is per-process, so the post_save signal that
+# clears it only reaches one worker and the rest must expire on their own. A
+# new category appearing in the filter a minute late is fine; fifteen is not.
+CATEGORIES_CACHE_TIMEOUT = 60
+
+
+def get_cached_categories():
+    categories = cache.get(CATEGORIES_CACHE_KEY)
+    if not categories:
+        categories = list(Category.objects.all())
+        cache.set(CATEGORIES_CACHE_KEY, categories, CATEGORIES_CACHE_TIMEOUT)
+    return categories
+
 
 # ==========================================
 # 🏠 HOME PAGE CONTROLLER
 # ==========================================
 
 def home_page(request):
-    categories = cache.get('global_store_categories')
-    if not categories:
-        categories = Category.objects.all()
-        cache.set('global_store_categories', categories, 60 * 15)
+    categories = get_cached_categories()
+
+    # Both sections below want "the newest in-stock products, per category".
+    # Fetching that once and grouping in Python keeps the page at a fixed
+    # query count instead of one query per category, twice over.
+    newest_by_category = {}
+    for product in Product.objects.filter(is_sold=False).select_related('category').order_by('-created_at', '-id'):
+        newest_by_category.setdefault(product.category_id, []).append(product)
 
     # 🆕 Hero announcement slides: an admin marks a category as "featured in
     # hero" (from the Categories management page) and its newest in-stock
     # product becomes an auto-rotating slide here. No fixed slide count.
     hero_slides = []
-    featured_categories = Category.objects.filter(is_featured_in_hero=True).order_by('name')
-    for index, category in enumerate(featured_categories):
-        product = Product.objects.filter(
-            is_sold=False, category=category
-        ).select_related('category').order_by('-created_at', '-id').first()
-        if product:
+    featured_categories = [c for c in categories if c.is_featured_in_hero]
+    for index, category in enumerate(sorted(featured_categories, key=lambda c: c.name)):
+        products = newest_by_category.get(category.id)
+        if products:
             hero_slides.append({
                 'category': category,
-                'product': product,
+                'product': products[0],
                 'accent': CATEGORY_ACCENT_PALETTE[index % len(CATEGORY_ACCENT_PALETTE)],
             })
 
@@ -54,9 +71,7 @@ def home_page(request):
     for index, category in enumerate(categories):
         if not category.slug or not category.show_newest_row:
             continue
-        products = Product.objects.filter(
-            is_sold=False, category=category
-        ).select_related('category').order_by('-created_at', '-id')[:10]
+        products = newest_by_category.get(category.id, [])[:10]
         if products:
             category_sections.append({
                 'category': category,
@@ -78,10 +93,7 @@ def home_page(request):
 
 def product_list(request, category_slug=None):
     category = None
-    categories = cache.get('global_store_categories')
-    if not categories:
-        categories = Category.objects.all()
-        cache.set('global_store_categories', categories, 60 * 15)
+    categories = get_cached_categories()
 
     products_list = Product.objects.filter(is_sold=False).select_related('category').order_by('-id')
 

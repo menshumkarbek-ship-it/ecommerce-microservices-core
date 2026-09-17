@@ -269,7 +269,19 @@ class StorefrontTests(TestCase):
         self.client.post(reverse('shop:delete_product', args=[product.id]))
 
         self.assertEqual(self.client.get(reverse('shop:product_list')).context['products'].paginator.count, 0)
-        self.assertEqual(self.client.get('/api/products/').json(), [])
+        self.assertEqual(self.client.get('/api/products/').json()['results'], [])
+
+    def test_api_list_is_paginated_and_avoids_a_query_per_product(self):
+        for i in range(6):
+            self.make_product(f'Phone {i}', f'phone-{i}', '100.00')
+
+        with self.assertNumQueries(2):  # one count for paging, one for the page
+            payload = self.client.get('/api/products/').json()
+
+        self.assertEqual(payload['count'], 6)
+        self.assertIn('results', payload)
+        # The nested category must come from the join, not a lookup per row.
+        self.assertEqual(payload['results'][0]['category']['slug'], 'phones')
 
     def test_homepage_gets_a_row_for_every_category_with_stock(self):
         headphones = Category.objects.create(name='Headphones', slug='headphones')

@@ -167,8 +167,14 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# Origins allowed to submit forms. Hardcoding only *.onrender.com meant that
+# attaching a custom domain would 403 every POST — login, product saves,
+# filters — so this is env-driven like ALLOWED_HOSTS, with the Render wildcard
+# kept as the default for the current deployment.
 CSRF_TRUSTED_ORIGINS = [
-    'https://*.onrender.com',
+    origin.strip()
+    for origin in os.getenv('CSRF_TRUSTED_ORIGINS', 'https://*.onrender.com').split(',')
+    if origin.strip()
 ]
 
 # Base url to serve media files
@@ -224,6 +230,15 @@ STORAGES = {
 
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+
+    # The catalog API is public and read-only, so the exposure to manage is
+    # volume, not access: without paging, /api/products/ serialises the whole
+    # table into one response, and without throttling a scraper can ask for
+    # it in a loop.
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 24,
+    'DEFAULT_THROTTLE_CLASSES': ['rest_framework.throttling.AnonRateThrottle'],
+    'DEFAULT_THROTTLE_RATES': {'anon': '120/min'},
 }
 
 SPECTACULAR_SETTINGS = {
@@ -233,7 +248,11 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
 }
 
-# 🏎️ LOCAL RECONFIGURED CACHING INFRASTRUCTURE (For running without Docker)
+# In-process cache. Note this is per worker: the category list and the
+# singleton settings cached against it are invalidated by signals, which only
+# reach the worker that handled the write — so their timeouts are kept short
+# (60s) rather than relying on invalidation alone. Swap in a shared backend
+# here if the site ever runs enough workers for that to matter.
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
@@ -241,19 +260,49 @@ CACHES = {
     }
 }
 
-# ==========================================
-# ⚡ CELERY & REDIS TASK QUEUE SETTINGS
-# ==========================================
-
-REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
-CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', REDIS_URL)
-CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', REDIS_URL)
-
-# Force Redis driver to use RESP2 protocol to prevent HELLO command errors
-CELERY_BROKER_TRANSPORT_OPTIONS = {'protocol_version': 2}
-
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ==========================================
+# 🪵 LOGGING
+# ==========================================
+
+# Without this Django logs almost nothing once DEBUG=False, so anything that
+# isn't a 500 is invisible on the host. Everything goes to stdout, which is
+# what Render (and `docker compose logs`) collects.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format': '[{asctime}] {levelname} {name}: {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': os.getenv('LOG_LEVEL', 'INFO').upper(),
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        # Chatty at DEBUG (one line per query) and never wanted in production.
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+    },
+}
 
 # ==========================================
 # 🔒 HTTPS & PRODUCTION SECURITY SETTINGS

@@ -1,6 +1,10 @@
+import logging
+
 from django.conf import settings
 from django.db import models
 from .utils import process_no_bg_image, translatable_property
+
+logger = logging.getLogger(__name__)
 
 
 # ==========================================
@@ -309,8 +313,10 @@ class Product(models.Model):
             try:
                 filename, content = process_no_bg_image(self.image, self.slug if self.slug else 'device')
                 self.image.save(filename, content, save=False)
-            except Exception as exc:
-                print(f"[IMAGE PROCESSOR NOTICE] Error processing background: {exc}")
+            except Exception:
+                # The upload is still usable unprocessed, so don't fail the
+                # save — but this must be visible, not printed into the void.
+                logger.exception('Background removal failed for product image %r', self.slug)
 
         super().save(*args, **kwargs)
 
@@ -343,8 +349,8 @@ class ProductImage(models.Model):
                 prefix = f"{self.product.slug if self.product_id else 'device'}-gallery-{self.pk or 'new'}"
                 filename, content = process_no_bg_image(self.image, prefix)
                 self.image.save(filename, content, save=False)
-            except Exception as exc:
-                print(f"[IMAGE PROCESSOR NOTICE] Error processing gallery photo background: {exc}")
+            except Exception:
+                logger.exception('Background removal failed for gallery photo of product %s', self.product_id)
 
         super().save(*args, **kwargs)
 

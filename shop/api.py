@@ -11,6 +11,7 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     lookup_field = 'slug'
+    pagination_class = None  # A handful of categories; paging them helps nobody.
 
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
@@ -21,8 +22,9 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'slug'
 
     def get_queryset(self):
-        # Exclude sold products from the public API storefront
-        queryset = Product.objects.filter(is_sold=False)
+        # select_related: ProductSerializer nests the category, so without it
+        # a list response fires one extra query per product.
+        queryset = Product.objects.select_related('category').filter(is_sold=False)
 
         # Enable dynamic filtering via URL query params: e.g., /api/products/?brand=Apple
         brand = self.request.query_params.get('brand')
