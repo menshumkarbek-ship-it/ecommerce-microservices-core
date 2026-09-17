@@ -9,6 +9,81 @@
 <style>
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* Each hero slide is tinted with its category's accent, so moving to the
+     next one reads as a new card rather than the same black panel with
+     different text. Mirrors CATEGORY_ACCENT_PALETTE in views.py. */
+  .hero-slide-indigo { background-image: linear-gradient(115deg, #111a45 0%, #05070c 62%); }
+  .theme-light .hero-slide-indigo { background-image: linear-gradient(115deg, #dce6ff 0%, #f8fafc 62%); }
+  .hero-slide-cyan { background-image: linear-gradient(115deg, #083344 0%, #05070c 62%); }
+  .theme-light .hero-slide-cyan { background-image: linear-gradient(115deg, #cffafe 0%, #f8fafc 62%); }
+  .hero-slide-emerald { background-image: linear-gradient(115deg, #022c22 0%, #05070c 62%); }
+  .theme-light .hero-slide-emerald { background-image: linear-gradient(115deg, #d1fae5 0%, #f8fafc 62%); }
+  .hero-slide-purple { background-image: linear-gradient(115deg, #3b0764 0%, #05070c 62%); }
+  .theme-light .hero-slide-purple { background-image: linear-gradient(115deg, #f3e8ff 0%, #f8fafc 62%); }
+  .hero-slide-amber { background-image: linear-gradient(115deg, #451a03 0%, #05070c 62%); }
+  .theme-light .hero-slide-amber { background-image: linear-gradient(115deg, #fef3c7 0%, #f8fafc 62%); }
+  .hero-slide-rose { background-image: linear-gradient(115deg, #4c0519 0%, #05070c 62%); }
+  .theme-light .hero-slide-rose { background-image: linear-gradient(115deg, #ffe4e6 0%, #f8fafc 62%); }
+  .hero-slide-sky { background-image: linear-gradient(115deg, #082f49 0%, #05070c 62%); }
+  .theme-light .hero-slide-sky { background-image: linear-gradient(115deg, #e0f2fe 0%, #f8fafc 62%); }
+  .hero-slide-teal { background-image: linear-gradient(115deg, #042f2e 0%, #05070c 62%); }
+  .theme-light .hero-slide-teal { background-image: linear-gradient(115deg, #ccfbf1 0%, #f8fafc 62%); }
+
+  /* Pagination as category labels + a counter instead of anonymous dots. */
+  .heroSwiper .swiper-pagination {
+    position: static;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: .35rem;
+    width: auto;
+  }
+  /* On phones the labels scroll in one row instead of stacking up. */
+  @media (max-width: 639px) {
+    .heroSwiper .swiper-pagination {
+      flex-wrap: nowrap;
+      justify-content: flex-start;
+      overflow-x: auto;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+      padding-bottom: 2px;
+    }
+    .heroSwiper .swiper-pagination::-webkit-scrollbar { display: none; }
+    .heroSwiper .swiper-pagination-bullet { flex: none; }
+  }
+  .heroSwiper .swiper-pagination-bullet {
+    width: auto;
+    height: auto;
+    margin: 0 !important;
+    padding: .3rem .7rem;
+    border-radius: 9999px;
+    background-color: rgba(255, 255, 255, .08);
+    border: 1px solid rgba(255, 255, 255, .12);
+    color: rgba(255, 255, 255, .7);
+    opacity: 1;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    line-height: 1.2;
+    transition: background-color .25s, color .25s;
+  }
+  .heroSwiper .swiper-pagination-bullet-active {
+    background-color: #ffffff;
+    border-color: #ffffff;
+    color: #05070c;
+  }
+  .theme-light .heroSwiper .swiper-pagination-bullet {
+    background-color: rgba(17, 21, 31, .06);
+    border-color: rgba(17, 21, 31, .12);
+    color: #434c5e;
+  }
+  .theme-light .heroSwiper .swiper-pagination-bullet-active {
+    background-color: #11151f;
+    border-color: #11151f;
+    color: #ffffff;
+  }
 </style>
 
 <!-- 🌟 HERO ANNOUNCEMENT CAROUSEL (fully admin-controlled: each slide is a -->
@@ -23,7 +98,7 @@
       <div class="swiper-wrapper">
 
         {% for slide in hero_slides %}
-        <div class="swiper-slide text-white py-6 sm:py-14 relative">
+        <div class="swiper-slide hero-slide-{{ slide.accent }} text-white py-6 sm:py-14 relative">
           <div class="absolute top-1/2 left-1/4 -translate-y-1/2 w-96 h-96 bg-{{ slide.accent }}-600/20 rounded-full blur-[120px] pointer-events-none"></div>
           <div class="absolute -bottom-20 -right-20 w-96 h-96 bg-purple-600/20 rounded-full blur-[120px] pointer-events-none"></div>
 
@@ -68,7 +143,11 @@
 
       </div>
 
-      <div class="swiper-pagination !bottom-1 sm:!bottom-4"></div>
+      <!-- Category labels double as pagination; the counter says how many cards there are. -->
+      <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pb-4 sm:pb-6 -mt-2 sm:-mt-6 flex items-center justify-center gap-3">
+        <span class="hero-counter shrink-0 text-[10px] font-black tracking-wider text-slate-400 tabular-nums">1 / {{ hero_slides|length }}</span>
+        <div class="swiper-pagination"></div>
+      </div>
       <div class="swiper-button-next !hidden sm:!flex !w-11 !h-11 bg-slate-900/40 hover:bg-slate-900/80 backdrop-blur-md border border-white/10 rounded-full shadow-lg !text-white/70 hover:!text-white after:!text-xs transition-all duration-300 !right-6"></div>
       <div class="swiper-button-prev !hidden sm:!flex !w-11 !h-11 bg-slate-900/40 hover:bg-slate-900/80 backdrop-blur-md border border-white/10 rounded-full shadow-lg !text-white/70 hover:!text-white after:!text-xs transition-all duration-300 !left-6"></div>
     </div>
@@ -129,8 +208,13 @@
 {% if hero_slides %}
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script>
+  const heroLabels = [{% for slide in hero_slides %}'{{ slide.category.translated_name|escapejs }}'{% if not forloop.last %}, {% endif %}{% endfor %}];
+  const heroCounter = document.querySelector('.hero-counter');
   let heroSwiper = new Swiper('.heroSwiper', {
     slidesPerView: 1,
+    // A visible gap while the card slides across, so the move reads as one
+    // card leaving and another arriving.
+    spaceBetween: 24,
     loop: {{ hero_slides|length }} > 1,
     speed: 1000,
     autoplay: {
@@ -140,6 +224,21 @@
     pagination: {
       el: '.swiper-pagination',
       clickable: true,
+      renderBullet: (index, className) => `<span class="${className}">${heroLabels[index]}</span>`,
+    },
+    on: {
+      slideChange: (swiper) => {
+        heroCounter.textContent = `${swiper.realIndex + 1} / ${heroLabels.length}`;
+        // Keep the active label in view where the row scrolls (phones). Scroll
+        // the row itself rather than scrollIntoView, which would also drag the
+        // overflow-hidden hero sideways. pagination.el is still null on the
+        // slideChange that loop mode fires during init.
+        const row = swiper.pagination?.el;
+        const active = row?.querySelector('.swiper-pagination-bullet-active');
+        if (active) {
+          row.scrollTo({ left: active.offsetLeft - (row.clientWidth - active.offsetWidth) / 2, behavior: 'smooth' });
+        }
+      },
     },
     navigation: {
       nextEl: '.swiper-button-next',
