@@ -11,23 +11,23 @@
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-10 sm:space-y-16">
-
-  <!-- 🌟 HERO ANNOUNCEMENT CAROUSEL (fully admin-controlled: each slide is a -->
-  <!-- category an admin marked "featured in hero" from the Categories page, -->
-  <!-- showing that category's newest in-stock product) -->
-  {% if hero_slides %}
-  <section class="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-slate-950 border border-slate-800/80 shadow-2xl">
+<!-- 🌟 HERO ANNOUNCEMENT CAROUSEL (fully admin-controlled: each slide is a -->
+<!-- category an admin marked "featured in hero" from the Categories page, -->
+<!-- showing that category's newest in-stock product). Sits outside the -->
+<!-- centred container so it runs edge to edge; the slide content inside is -->
+<!-- still capped at max-w-7xl so it lines up with the rows below. -->
+{% if hero_slides %}
+<section class="relative overflow-hidden bg-slate-950 border-b border-slate-800/80 shadow-2xl">
 
     <div class="swiper heroSwiper w-full">
       <div class="swiper-wrapper">
 
         {% for slide in hero_slides %}
-        <div class="swiper-slide text-white p-4 sm:p-14 relative">
+        <div class="swiper-slide text-white py-6 sm:py-14 relative">
           <div class="absolute top-1/2 left-1/4 -translate-y-1/2 w-96 h-96 bg-{{ slide.accent }}-600/20 rounded-full blur-[120px] pointer-events-none"></div>
           <div class="absolute -bottom-20 -right-20 w-96 h-96 bg-purple-600/20 rounded-full blur-[120px] pointer-events-none"></div>
 
-          <div class="relative z-10 grid grid-cols-12 gap-3 sm:gap-8 items-center">
+          <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-12 gap-3 sm:gap-8 items-center">
             <div class="col-span-7 space-y-1.5 sm:space-y-6 text-left">
               <span class="inline-flex items-center gap-1 sm:gap-2 px-2 py-0.5 sm:px-3.5 sm:py-1.5 rounded-full text-[8px] sm:text-xs font-black uppercase tracking-wider bg-{{ slide.accent }}-500/10 text-{{ slide.accent }}-400 border border-{{ slide.accent }}-500/20">
                 <span class="w-1 h-1 sm:w-2 sm:h-2 rounded-full bg-{{ slide.accent }}-400 animate-pulse"></span>
@@ -72,9 +72,10 @@
       <div class="swiper-button-next !hidden sm:!flex !w-11 !h-11 bg-slate-900/40 hover:bg-slate-900/80 backdrop-blur-md border border-white/10 rounded-full shadow-lg !text-white/70 hover:!text-white after:!text-xs transition-all duration-300 !right-6"></div>
       <div class="swiper-button-prev !hidden sm:!flex !w-11 !h-11 bg-slate-900/40 hover:bg-slate-900/80 backdrop-blur-md border border-white/10 rounded-full shadow-lg !text-white/70 hover:!text-white after:!text-xs transition-all duration-300 !left-6"></div>
     </div>
-  </section>
-  {% endif %}
+</section>
+{% endif %}
 
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-10 sm:space-y-16">
 
   <!-- 🆕 PER-CATEGORY "NEWEST IN" SLIDESHOWS (fully data-driven: every -->
   <!-- category with stock gets its own horizontally-scrollable row here, -->
