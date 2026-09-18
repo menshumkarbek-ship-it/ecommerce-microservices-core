@@ -74,13 +74,13 @@
                             <label class="hidden sm:block text-[11px] font-black uppercase text-slate-400 tracking-wider mb-1.5">
                                 {% translate "Min Price (som)" %}
                             </label>
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" name="min_price" value="{{ min_price }}" placeholder="0" onwheel="this.blur()" oninput="this.value=this.value.replace(/[^0-9]/g, '')" class="w-full bg-slate-800/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" name="min_price" value="{{ min_price }}" placeholder="{{ price_floor|floatformat:0 }}" onwheel="this.blur()" oninput="this.value=this.value.replace(/[^0-9]/g, '')" class="w-full bg-slate-800/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                         </div>
                         <div>
                             <label class="hidden sm:block text-[11px] font-black uppercase text-slate-400 tracking-wider mb-1.5">
                                 {% translate "Max Price (som)" %}
                             </label>
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" name="max_price" value="{{ max_price }}" placeholder="3000" onwheel="this.blur()" oninput="this.value=this.value.replace(/[^0-9]/g, '')" class="w-full bg-slate-800/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" name="max_price" value="{{ max_price }}" placeholder="{{ price_ceiling|floatformat:0 }}" onwheel="this.blur()" oninput="this.value=this.value.replace(/[^0-9]/g, '')" class="w-full bg-slate-800/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                         </div>
                     </div>
                 </div>

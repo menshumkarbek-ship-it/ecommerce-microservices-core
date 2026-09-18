@@ -6,6 +6,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-site-verification" content="1rzUjNt1yLmNpV5M-uHcX_GX9CodyXjgnCmvGEf28ic" />
     <title>{% block title %}{{ store_name }} | {% translate "Premium Electronics" %}{% endblock %}</title>
+
+    {% comment %}
+    Link previews. Views can override any of these by putting meta_description,
+    og_title or og_image in the context; product pages do. Without them a link
+    pasted into WhatsApp or Telegram unfurls as a bare URL.
+    {% endcomment %}
+    {% translate "Phones, laptops, tablets and accessories with verified prices and full specifications." as default_description %}
+    {% firstof meta_description default_description as page_description %}
+    {% firstof og_title store_name as page_og_title %}
+    <meta name="description" content="{{ page_description }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{{ store_name }}">
+    <meta property="og:title" content="{{ page_og_title }}">
+    <meta property="og:description" content="{{ page_description }}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:locale" content="{{ LANGUAGE_CODE|default:'en' }}">
+    <meta name="twitter:card" content="{% if og_image %}summary_large_image{% else %}summary{% endif %}">
+    <meta name="twitter:title" content="{{ page_og_title }}">
+    <meta name="twitter:description" content="{{ page_description }}">
+    {% if og_image %}
+    <meta property="og:image" content="{{ og_image }}">
+    <meta name="twitter:image" content="{{ og_image }}">
+    {% endif %}
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         // The dark theme is built entirely out of Tailwind's `slate` (blue-grey)

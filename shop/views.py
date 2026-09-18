@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.cache import cache
-from django.db.models import Q, Sum, Count
+from django.db.models import Q, Sum, Count, Min, Max
 from django.utils import timezone
 from django.utils.dates import MONTHS
 from django.utils.translation import gettext as _
@@ -62,6 +62,10 @@ def home_page(request):
                 'accent': CATEGORY_ACCENT_PALETTE[index % len(CATEGORY_ACCENT_PALETTE)],
             })
 
+    # Whatever the hero is already showing is skipped in the rows below —
+    # otherwise the first card of each row is the slide directly above it.
+    hero_product_ids = {slide['product'].id for slide in hero_slides}
+
     # 🆕 Build one "Newest In <Category>" slideshow row per category that has
     # stock AND that an admin has left switched on (Category.show_newest_row,
     # toggled from the Categories management page). New categories default to
@@ -70,7 +74,10 @@ def home_page(request):
     for index, category in enumerate(categories):
         if not category.slug or not category.show_newest_row:
             continue
-        products = newest_by_category.get(category.id, [])[:10]
+        products = [
+            p for p in newest_by_category.get(category.id, [])
+            if p.id not in hero_product_ids
+        ][:10]
         if products:
             category_sections.append({
                 'category': category,
@@ -145,6 +152,10 @@ def product_list(request, category_slug=None):
 
     available_brands = Product.objects.filter(is_sold=False).order_by('brand').values_list('brand', flat=True).distinct()
 
+    # Real catalog bounds, so the price inputs hint at what the store actually
+    # stocks instead of a hardcoded range nothing falls into.
+    price_bounds = Product.objects.filter(is_sold=False).aggregate(low=Min('price'), high=Max('price'))
+
     # The whole matching catalog on one page: the store owner wants every
     # product visible at once, and at this catalog size (well under a few
     # hundred rows) one query is cheaper than a pager anyone has to click.
@@ -155,6 +166,8 @@ def product_list(request, category_slug=None):
         'categories': categories,
         'products': products,
         'available_brands': available_brands,
+        'price_floor': price_bounds['low'],
+        'price_ceiling': price_bounds['high'],
         'selected_type': selected_type,
         'selected_brand': brand_filter or '',
         'min_price': min_price or '',
@@ -170,7 +183,24 @@ def product_detail(request, product_slug):
         Product.objects.select_related('category').prefetch_related('gallery_images'),
         slug=product_slug, is_sold=False
     )
-    return render(request, 'shop/product/detail.html', {'product': product})
+
+    related_products = list(
+        Product.objects.filter(is_sold=False, category=product.category)
+        .exclude(pk=product.pk)
+        .select_related('category')
+        .order_by('-created_at', '-id')[:8]
+    )
+
+    context = {
+        'product': product,
+        'related_products': related_products,
+        'meta_description': product.translated_description or _(
+            "%(brand)s %(name)s — available in store."
+        ) % {'brand': product.brand, 'name': product.translated_name},
+        'og_title': f'{product.brand} {product.translated_name}',
+        'og_image': request.build_absolute_uri(product.image.url) if product.image else None,
+    }
+    return render(request, 'shop/product/detail.html', context)
 
 
 def product_specs(request, product_slug):

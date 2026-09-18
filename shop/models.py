@@ -109,6 +109,21 @@ class ContactSettings(models.Model):
     def instagram_handle(self):
         return self.instagram_username.lstrip('@').strip()
 
+    @property
+    def has_any_channel(self):
+        """
+        Whether a customer can actually reach the store. Product pages hide
+        their "Enquire" button when this is False, so nobody is sent to a
+        Contact page that has nothing on it.
+        """
+        return any([
+            self.email,
+            self.phone_digits,
+            self.whatsapp_digits,
+            self.telegram_handle,
+            self.instagram_handle,
+        ])
+
 
 # ==========================================
 # 📖 ABOUT PAGE CONTENT (SINGLETON)
