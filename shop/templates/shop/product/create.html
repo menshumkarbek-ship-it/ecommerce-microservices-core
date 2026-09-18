@@ -135,12 +135,22 @@
                             {{ p.brand }} &middot; {{ p.catalog_code }} &middot; {{ p.deleted_at|date:"d M Y, H:i" }}
                         </p>
                     </div>
-                    <form method="POST" action="{% url 'shop:restore_product' p.id %}" class="shrink-0 ml-2">
-                        {% csrf_token %}
-                        <button type="submit" class="text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1.5 rounded-lg transition-colors">
-                            {% translate "Restore" %}
-                        </button>
-                    </form>
+                    <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                        <form method="POST" action="{% url 'shop:restore_product' p.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1.5 rounded-lg transition-colors">
+                                {% translate "Restore" %}
+                            </button>
+                        </form>
+                        <!-- Second, deliberate step: this one is not undoable, so
+                             it goes through the password gate. -->
+                        <form method="POST" action="{% url 'shop:purge_product' p.id %}" data-confirm-delete="{% blocktranslate with name=p.name %}{{ name }} and its photos will be erased for good and cannot be restored. Sales already recorded for it stay in the report.{% endblocktranslate %}">
+                            {% csrf_token %}
+                            <button type="submit" title="{% translate 'Delete permanently' %}" class="text-[11px] font-bold text-red-700 bg-red-50 hover:bg-red-100 px-2.5 py-1.5 rounded-lg transition-colors">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </form>
+                    </div>
                 </div>
                 {% endfor %}
             </div>
@@ -288,6 +298,7 @@
     {% endif %}
 
 </div>
+
 
 <!-- URL parameter switch script -->
 <script>

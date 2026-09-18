@@ -89,6 +89,8 @@ def home_page(request):
         'categories': categories,
         'hero_slides': hero_slides,
         'category_sections': category_sections,
+        # Counted off the grouping above rather than a second COUNT query.
+        'in_stock_count': sum(len(items) for items in newest_by_category.values()),
     }
     return render(request, 'shop/home.html', context)
 
@@ -415,6 +417,106 @@ def restore_product(request, product_id):
     return redirect('shop:create_product')
 
 
+def _delete_product_files(product):
+    """Erase the image files behind a product; nothing else cleans them up, so
+    deleting only the rows would leave them orphaned in media/."""
+    for photo in product.gallery_images.all():
+        photo.image.delete(save=False)
+    if product.image:
+        product.image.delete(save=False)
+
+
+@login_required
+@user_passes_test(is_admin_or_manager, login_url='shop:product_list', redirect_field_name=None)
+@require_POST
+def purge_product(request, product_id):
+    """
+    Delete a removed listing for good: the row, its gallery rows, and the
+    image files behind them, which nothing else cleans up.
+
+    Only reachable for a listing already sitting in "Recently removed", so a
+    permanent delete always costs two deliberate clicks. Any Sale it recorded
+    is deliberately left standing — Sale.product is SET_NULL and every figure
+    the report reads is snapshotted on the Sale itself, so past months keep
+    their revenue. Use "Discard" on the report to strike a sale.
+    """
+    product = get_object_or_404(Product.all_objects, id=product_id, deleted_at__isnull=False)
+
+    name = product.name
+    _delete_product_files(product)
+    product.delete()
+
+    messages.success(
+        request,
+        _('"%(name)s" was permanently deleted, along with its photos.') % {'name': name},
+    )
+    return redirect('shop:create_product')
+
+
+@login_required
+@user_passes_test(is_admin_or_manager, login_url='shop:product_list', redirect_field_name=None)
+@require_POST
+def delete_category(request, category_id):
+    """
+    Delete a category and everything filed under it.
+
+    Product.category cascades, so the listings go with it — including any
+    parked in "Recently removed", which stop being restorable. Their image
+    files are erased first, since the cascade only takes the rows. Sales
+    already recorded survive: Sale.product is SET_NULL and the report reads
+    the snapshot on the Sale itself.
+    """
+    category = get_object_or_404(Category, id=category_id)
+
+    products = list(Product.all_objects.filter(category=category).prefetch_related('gallery_images'))
+    for product in products:
+        _delete_product_files(product)
+
+    name = category.name
+    category.delete()
+
+    messages.success(
+        request,
+        _('Category "%(name)s" was deleted, along with its products: %(count)s.')
+        % {'name': name, 'count': len(products)},
+    )
+    return redirect('shop:create_category')
+
+
+@login_required
+@user_passes_test(is_admin_or_manager, login_url='shop:product_list', redirect_field_name=None)
+def sales_archive(request):
+    """
+    Every sale ever recorded, newest first — the permanent counterpart to the
+    10-slot "Recently removed" list, which is only an undo affordance.
+
+    Reads the same Sale rows as the monthly report, so the two can never
+    disagree; each row links to the month it belongs to over there.
+    """
+    # product is joined too: each row checks whether the listing behind it
+    # still exists, which would otherwise be a query per sale.
+    sales = Sale.objects.select_related('sold_by', 'product').order_by('-sold_at')
+
+    search_query = (request.GET.get('search') or '').strip()
+    if search_query:
+        sales = sales.filter(
+            Q(product_name__icontains=search_query) |
+            Q(brand__icontains=search_query) |
+            Q(category_name__icontains=search_query) |
+            Q(catalog_code__icontains=search_query)
+        )
+
+    totals = sales.aggregate(total_revenue=Sum('price'), total_count=Count('id'))
+
+    context = {
+        'sales': sales,
+        'total_revenue': totals['total_revenue'] or 0,
+        'total_count': totals['total_count'] or 0,
+        'search_query': search_query,
+    }
+    return render(request, 'shop/product/sales_archive.html', context)
+
+
 @login_required
 @user_passes_test(is_admin_or_manager, login_url='shop:product_list', redirect_field_name=None)
 @require_POST
@@ -463,7 +565,11 @@ def create_category(request):
     else:
         form = CategoryCreateForm()
 
-    all_categories = Category.objects.all().order_by('name')
+    # Counts every row the cascade would take, removed listings included, so
+    # the delete button can say up front why it is unavailable.
+    all_categories = Category.objects.annotate(
+        product_count=Count('products')
+    ).order_by('name')
 
     context = {
         'form': form,

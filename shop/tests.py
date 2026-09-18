@@ -378,6 +378,91 @@ class StorefrontTests(TestCase):
         self.assertIn('phones', sections)
         self.assertContains(response, 'Newest In Headphones')
 
+    def login_as_manager(self):
+        staff = User.objects.create_user(
+            username='manager', password='manager-password-123', is_staff=True
+        )
+        self.client.force_login(staff)
+        return staff
+
+    def test_purging_a_removed_listing_erases_the_row_for_good(self):
+        self.login_as_manager()
+        product = self.make_product('Added by mistake', 'mistake', '250.00')
+        self.client.post(reverse('shop:remove_product', args=[product.id]))
+
+        self.client.post(reverse('shop:purge_product', args=[product.id]))
+
+        # Not merely hidden this time: the row itself is gone, so the slug and
+        # the per-category number are free again.
+        self.assertFalse(Product.all_objects.filter(pk=product.pk).exists())
+
+    def test_purging_is_refused_for_a_listing_still_on_the_catalog(self):
+        self.login_as_manager()
+        product = self.make_product('Phone', 'phone', '250.00')
+
+        response = self.client.post(reverse('shop:purge_product', args=[product.id]))
+
+        # Permanent delete is only reachable from "Recently removed", so no
+        # active listing can be erased in a single click.
+        self.assertEqual(response.status_code, 404)
+        self.assertTrue(Product.all_objects.filter(pk=product.pk).exists())
+
+
+    def test_purging_a_sold_listing_leaves_its_sale_in_the_report(self):
+        self.login_as_manager()
+        product = self.make_product('Phone', 'phone', '250.00')
+        self.client.post(reverse('shop:sell_product', args=[product.id]))
+
+        self.client.post(reverse('shop:purge_product', args=[product.id]))
+
+        self.assertFalse(Product.all_objects.filter(pk=product.pk).exists())
+        # Sale.product is SET_NULL and the figures are snapshotted on the Sale,
+        # so a past month's revenue survives the listing being erased.
+        sale = Sale.objects.get(product_name='Phone')
+        self.assertIsNone(sale.product)
+        self.assertEqual(sale.price, Decimal('250.00'))
+
+    def test_deleting_a_category_takes_its_products_with_it(self):
+        self.login_as_manager()
+        active = self.make_product('Phone', 'phone', '250.00')
+        removed = self.make_product('Old Phone', 'old-phone', '100.00')
+        self.client.post(reverse('shop:remove_product', args=[removed.id]))
+
+        self.client.post(reverse('shop:delete_category', args=[self.category.id]))
+
+        self.assertFalse(Category.objects.filter(pk=self.category.pk).exists())
+        # Everything filed under it goes, a parked listing included.
+        self.assertFalse(Product.all_objects.filter(pk=active.pk).exists())
+        self.assertFalse(Product.all_objects.filter(pk=removed.pk).exists())
+
+    def test_deleting_a_category_keeps_the_sales_it_recorded(self):
+        self.login_as_manager()
+        product = self.make_product('Phone', 'phone', '250.00')
+        self.client.post(reverse('shop:sell_product', args=[product.id]))
+
+        self.client.post(reverse('shop:delete_category', args=[self.category.id]))
+
+        sale = Sale.objects.get(product_name='Phone')
+        self.assertIsNone(sale.product)
+        self.assertEqual(sale.price, Decimal('250.00'))
+
+
+    def test_archive_lists_every_sale_including_one_whose_listing_was_purged(self):
+        self.login_as_manager()
+        kept = self.make_product('Kept Phone', 'kept-phone', '250.00')
+        purged = self.make_product('Purged Phone', 'purged-phone', '400.00')
+        self.client.post(reverse('shop:sell_product', args=[kept.id]))
+        self.client.post(reverse('shop:sell_product', args=[purged.id]))
+        self.client.post(reverse('shop:purge_product', args=[purged.id]))
+
+        response = self.client.get(reverse('shop:sales_archive'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['total_count'], 2)
+        self.assertEqual(response.context['total_revenue'], Decimal('650.00'))
+        self.assertContains(response, 'Kept Phone')
+        self.assertContains(response, 'Purged Phone')
+
 
 class SeedCatalogTests(TestCase):
     """`manage.py seed_catalog` runs on a live store from build.sh, so it must

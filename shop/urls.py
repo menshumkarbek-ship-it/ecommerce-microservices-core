@@ -32,13 +32,16 @@ urlpatterns = [
     path('management/product/<int:product_id>/sold/', views.sell_product, name='sell_product'),
     path('management/product/<int:product_id>/remove/', views.remove_product, name='remove_product'),
     path('management/product/<int:product_id>/restore/', views.restore_product, name='restore_product'),
+    path('management/product/<int:product_id>/purge/', views.purge_product, name='purge_product'),
     path('management/product/image/<int:image_id>/delete/', views.delete_product_image, name='delete_product_image'),
     path('management/category/add/', views.create_category, name='create_category'),
     path('management/category/<int:category_id>/toggle-hero/', views.toggle_category_hero, name='toggle_category_hero'),
     path('management/category/<int:category_id>/toggle-newest/', views.toggle_category_newest, name='toggle_category_newest'),
+    path('management/category/<int:category_id>/delete/', views.delete_category, name='delete_category'),
     path('management/contacts/', views.manage_contacts, name='manage_contacts'),
     path('management/about/', views.manage_about, name='manage_about'),
     path('management/sales/', views.sales_report, name='sales_report'),
+    path('management/archive/', views.sales_archive, name='sales_archive'),
     path('management/sales/<int:sale_id>/discard/', views.discard_sale, name='discard_sale'),
 
     # --- Auxiliary Pages ---
