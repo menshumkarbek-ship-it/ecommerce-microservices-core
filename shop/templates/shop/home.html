@@ -7,184 +7,163 @@
 {% block content %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 <style>
-  .no-scrollbar::-webkit-scrollbar { display: none; }
-  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-  /* Each hero slide is tinted with its category's accent, so moving to the
-     next one reads as a new card rather than the same black panel with
-     different text. Mirrors CATEGORY_ACCENT_PALETTE in views.py. */
-  .hero-slide-indigo { background-image: linear-gradient(115deg, #111a45 0%, #05070c 62%); }
-  .theme-light .hero-slide-indigo { background-image: linear-gradient(115deg, #dce6ff 0%, #f8fafc 62%); }
-  .hero-slide-cyan { background-image: linear-gradient(115deg, #083344 0%, #05070c 62%); }
-  .theme-light .hero-slide-cyan { background-image: linear-gradient(115deg, #cffafe 0%, #f8fafc 62%); }
-  .hero-slide-emerald { background-image: linear-gradient(115deg, #022c22 0%, #05070c 62%); }
-  .theme-light .hero-slide-emerald { background-image: linear-gradient(115deg, #d1fae5 0%, #f8fafc 62%); }
-  .hero-slide-purple { background-image: linear-gradient(115deg, #3b0764 0%, #05070c 62%); }
-  .theme-light .hero-slide-purple { background-image: linear-gradient(115deg, #f3e8ff 0%, #f8fafc 62%); }
-  .hero-slide-amber { background-image: linear-gradient(115deg, #451a03 0%, #05070c 62%); }
-  .theme-light .hero-slide-amber { background-image: linear-gradient(115deg, #fef3c7 0%, #f8fafc 62%); }
-  .hero-slide-rose { background-image: linear-gradient(115deg, #4c0519 0%, #05070c 62%); }
-  .theme-light .hero-slide-rose { background-image: linear-gradient(115deg, #ffe4e6 0%, #f8fafc 62%); }
-  .hero-slide-sky { background-image: linear-gradient(115deg, #082f49 0%, #05070c 62%); }
-  .theme-light .hero-slide-sky { background-image: linear-gradient(115deg, #e0f2fe 0%, #f8fafc 62%); }
-  .hero-slide-teal { background-image: linear-gradient(115deg, #042f2e 0%, #05070c 62%); }
-  .theme-light .hero-slide-teal { background-image: linear-gradient(115deg, #ccfbf1 0%, #f8fafc 62%); }
-
-  /* Dots, with the active one stretched into a pill so position stays
-     readable without labelling every slide. */
+  /* Dot pagination: 8px circles, active in ink, the rest in quiet gray. */
   .heroSwiper .swiper-pagination {
     position: static;
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: .4rem;
+    gap: 7px;
     width: auto;
   }
   .heroSwiper .swiper-pagination-bullet {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
     margin: 0 !important;
-    border-radius: 9999px;
-    background-color: rgba(255, 255, 255, .3);
+    background-color: #777779;
     opacity: 1;
-    transition: width .3s cubic-bezier(.4, 0, .2, 1), background-color .3s;
+    transition: background-color .25s;
   }
-  .heroSwiper .swiper-pagination-bullet-active {
-    width: 24px;
-    background-color: #ffffff;
-  }
-  .theme-light .heroSwiper .swiper-pagination-bullet {
-    background-color: rgba(17, 21, 31, .22);
-  }
-  .theme-light .heroSwiper .swiper-pagination-bullet-active {
-    background-color: #11151f;
-  }
+  .heroSwiper .swiper-pagination-bullet-active { background-color: #1d1d1f; }
+
+  /* Arrows stay as quiet glyphs — no chrome, per the reference. */
+  .heroSwiper .swiper-button-next,
+  .heroSwiper .swiper-button-prev { color: #1d1d1f; }
+  .heroSwiper .swiper-button-next::after,
+  .heroSwiper .swiper-button-prev::after { font-size: 20px; }
 </style>
 
-<!-- 🌟 HERO ANNOUNCEMENT CAROUSEL (fully admin-controlled: each slide is a -->
-<!-- category an admin marked "featured in hero" from the Categories page, -->
-<!-- showing that category's newest in-stock product). Sits outside the -->
-<!-- centred container so it runs edge to edge; the slide content inside is -->
-<!-- still capped at max-w-7xl so it lines up with the rows below. -->
+<!-- 🌟 HERO: each slide is a category an admin marked "featured in hero",
+     showing that category's newest in-stock product. Centred Product Hero
+     stack — eyebrow, display headline, CTA, price, then the product. -->
 {% if hero_slides %}
-<section class="relative overflow-hidden bg-slate-950 border-b border-slate-800/80 shadow-2xl">
+<section class="band-white band-tight">
+  <div class="swiper heroSwiper w-full">
+    <div class="swiper-wrapper">
+      {% for slide in hero_slides %}
+      <div class="swiper-slide">
+        <div class="wrap text-center">
+          <p class="t-body-sm text-ink">
+            {% blocktranslate with name=slide.category.translated_name %}New In {{ name }}{% endblocktranslate %}
+          </p>
 
-    <div class="swiper heroSwiper w-full">
-      <div class="swiper-wrapper">
+          <h1 class="t-display text-ink mt-3">
+            {{ slide.product.brand }} {{ slide.product.translated_name }}
+          </h1>
 
-        {% for slide in hero_slides %}
-        <div class="swiper-slide hero-slide-{{ slide.accent }} text-white py-6 sm:py-14 relative">
-          <div class="absolute top-1/2 left-1/4 -translate-y-1/2 w-96 h-96 bg-{{ slide.accent }}-600/20 rounded-full blur-[120px] pointer-events-none"></div>
-          <div class="absolute -bottom-20 -right-20 w-96 h-96 bg-purple-600/20 rounded-full blur-[120px] pointer-events-none"></div>
+          <p class="t-body-sm text-midgray mt-5 max-w-xl mx-auto">
+            {% if slide.product.translated_description %}{{ slide.product.translated_description }}{% else %}{% translate "Explore our latest arrival." %}{% endif %}
+          </p>
 
-          <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-12 gap-3 sm:gap-8 items-center">
-            <div class="col-span-7 space-y-1.5 sm:space-y-6 text-left">
-              <span class="inline-flex items-center gap-1 sm:gap-2 px-2 py-0.5 sm:px-3.5 sm:py-1.5 rounded-full text-[8px] sm:text-xs font-black uppercase tracking-wider bg-{{ slide.accent }}-500/10 text-{{ slide.accent }}-400 border border-{{ slide.accent }}-500/20">
-                <span class="w-1 h-1 sm:w-2 sm:h-2 rounded-full bg-{{ slide.accent }}-400 animate-pulse"></span>
-                {% blocktranslate with name=slide.category.translated_name %}New In {{ name }}{% endblocktranslate %}
-              </span>
-
-              <h1 class="text-base sm:text-4xl lg:text-6xl font-black tracking-tight leading-tight [text-wrap:balance] text-transparent bg-clip-text bg-gradient-to-r from-{{ slide.accent }}-400 via-sky-300 to-purple-400">
-                {{ slide.product.brand }} {{ slide.product.translated_name }}
-              </h1>
-
-              <p class="text-slate-400 text-[9px] sm:text-base lg:text-lg max-w-xl leading-snug sm:leading-relaxed line-clamp-2 sm:line-clamp-3">
-                {% if slide.product.translated_description %}{{ slide.product.translated_description }}{% else %}{% translate "Explore our latest arrival." %}{% endif %}
-              </p>
-
-              <div class="flex flex-wrap items-center gap-2 sm:gap-6 pt-1 sm:pt-2">
-                <div class="bg-slate-900/80 backdrop-blur-md px-2 py-1 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-2xl border border-slate-800">
-                  <span class="block text-[7px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">{% translate "Special Price" %}</span>
-                  <span class="text-xs sm:text-2xl lg:text-3xl font-black text-emerald-400">{{ slide.product.price }} {% translate "som" %}</span>
-                </div>
-
-                <a href="{% url 'shop:product_detail' slide.product.slug %}" class="inline-flex items-center gap-1 sm:gap-3 px-2.5 py-1.5 sm:px-8 sm:py-4 bg-{{ slide.accent }}-600 hover:bg-{{ slide.accent }}-500 text-white font-bold text-[8px] sm:text-sm rounded-lg sm:rounded-2xl transition-all shadow-xl shadow-{{ slide.accent }}-600/30 hover:scale-105">
-                  <span>{% translate "Explore Device" %}</span>
-                  <i class="fa-solid fa-arrow-right text-[7px] sm:text-xs"></i>
-                </a>
-              </div>
-            </div>
-
-            <div class="col-span-5 flex justify-center items-center relative py-0 sm:py-6">
-              {% if slide.product.image %}
-                <div class="w-full max-w-sm aspect-square flex items-center justify-center p-2 sm:p-6 relative z-10 bg-white rounded-xl sm:rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
-                  <img src="{{ slide.product.image.url }}" alt="{{ slide.product.translated_name }}" class="h-full w-full object-contain object-center hover:scale-105 transition-transform duration-500">
-                </div>
-              {% endif %}
-            </div>
+          <div class="mt-7">
+            <a href="{% url 'shop:product_detail' slide.product.slug %}" class="btn btn-blue">{% translate "Explore Device" %}</a>
           </div>
+
+          <p class="t-body-sm text-midgray mt-4 figures">{{ slide.product.price }} {% translate "som" %}</p>
+
+          {% if slide.product.image %}
+          <div class="mt-10 flex justify-center">
+            <img src="{{ slide.product.image.url }}" alt="{{ slide.product.translated_name }}" style="mix-blend-mode: multiply; max-height: 300px;" class="w-full max-w-xl object-contain">
+          </div>
+          {% endif %}
         </div>
-        {% endfor %}
-
       </div>
-
-      <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pb-4 sm:pb-6 -mt-2 sm:-mt-6 flex items-center justify-center">
-        <div class="swiper-pagination"></div>
-      </div>
-      <div class="swiper-button-next !hidden sm:!flex !w-11 !h-11 bg-slate-900/40 hover:bg-slate-900/80 backdrop-blur-md border border-white/10 rounded-full shadow-lg !text-white/70 hover:!text-white after:!text-xs transition-all duration-300 !right-6"></div>
-      <div class="swiper-button-prev !hidden sm:!flex !w-11 !h-11 bg-slate-900/40 hover:bg-slate-900/80 backdrop-blur-md border border-white/10 rounded-full shadow-lg !text-white/70 hover:!text-white after:!text-xs transition-all duration-300 !left-6"></div>
+      {% endfor %}
     </div>
+
+    <div class="wrap mt-10 flex items-center justify-center">
+      <div class="swiper-pagination"></div>
+    </div>
+    <div class="swiper-button-next !hidden lg:!flex !right-6"></div>
+    <div class="swiper-button-prev !hidden lg:!flex !left-6"></div>
+  </div>
 </section>
 {% endif %}
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-10 sm:space-y-16">
+<!-- Store promise. Gray band — the colour shift is the only divider. -->
+<section class="band band-gray">
+  <div class="wrap">
+    <h2 class="t-subheading text-ink">{% translate "Why shop here" %}</h2>
 
-  <!-- 🆕 PER-CATEGORY "NEWEST IN" SLIDESHOWS (fully data-driven: every -->
-  <!-- category with stock gets its own horizontally-scrollable row here, -->
-  <!-- including new ones a seller adds, e.g. Headphones or Powerbanks) -->
-  {% for section in category_sections %}
-  <section class="space-y-6">
-    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-      <h2 class="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-        {% blocktranslate with name=section.category.translated_name %}Newest In {{ name }}{% endblocktranslate %}
-      </h2>
-      <a href="{% url 'shop:product_list_by_category' section.category.slug %}" class="text-xs font-bold text-{{ section.accent }}-400 hover:text-{{ section.accent }}-300 transition-colors">{% translate "View All" %} &rarr;</a>
+    <div class="mt-10 card bg-paper p-7 sm:p-10 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+      <div>
+        <h3 class="t-heading-sm text-ink">{% translate "Checked devices at the price on the tag" %}</h3>
+        <p class="t-body-sm text-midgray mt-5 max-w-xl">
+          {% translate "Everything listed is on our shelves right now. We test and photograph each device ourselves, and the price on the page is the price at the counter." %}
+        </p>
+        <div class="mt-7">
+          <a href="{% url 'shop:product_list' %}" class="btn btn-blue">{% translate "Browse the catalog" %}</a>
+        </div>
+      </div>
+
+      <div class="text-center lg:text-right">
+        <p class="t-display text-ink leading-none figures">{{ in_stock_count }}</p>
+        <p class="t-body-sm text-midgray mt-3">{% translate "devices in stock" %}</p>
+        <p class="t-caption text-midgray mt-1">{% translate "Restocked every week" %}</p>
+      </div>
     </div>
+  </div>
+</section>
 
-    <div class="no-scrollbar flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth">
-      {% for product in section.products %}
-      <article class="snap-start shrink-0 w-44 sm:w-52 bg-slate-900/80 rounded-2xl border border-slate-800/80 hover:border-{{ section.accent }}-500/50 shadow-lg p-3 flex flex-col justify-between transition-all duration-300 group">
-        <div class="aspect-square w-full p-2 flex items-center justify-center relative bg-white rounded-xl overflow-hidden shadow-inner">
-          <span class="absolute top-2 left-2 px-2 py-0.5 bg-slate-900 text-{{ section.accent }}-400 font-black text-[9px] rounded uppercase tracking-wider z-20">
-            {{ product.brand }}
-          </span>
-          {% if product.image %}
-            <img src="{{ product.image.url }}" alt="{{ product.translated_name }}" style="mix-blend-mode: multiply;" class="h-full w-full object-contain object-center group-hover:scale-105 transition-transform duration-300">
-          {% endif %}
-        </div>
-        <div class="mt-3 space-y-1">
-          <span class="text-[9px] font-black uppercase text-{{ section.accent }}-400 tracking-wider">{{ product.brand }}</span>
-          <h3 class="text-xs font-bold text-slate-100 truncate">
-            <a href="{% url 'shop:product_detail' product.slug %}" class="hover:text-{{ section.accent }}-400 transition-colors">{{ product.translated_name }}</a>
-          </h3>
-        </div>
-        <div class="space-y-2 pt-2 border-t border-slate-800 mt-2">
-          <div class="flex items-center justify-between">
-            <span class="text-base font-black text-white">{{ product.price }} {% translate "som" %}</span>
+<!-- 🆕 PER-CATEGORY "NEWEST IN" ROWS (data-driven: every category with stock
+     and its row switched on gets one, new ones included). -->
+<section class="band band-white">
+  <div class="wrap space-y-16">
+    {% for section in category_sections %}
+    <div>
+      <div class="flex items-end justify-between gap-4">
+        <h2 class="t-subheading text-ink">
+          {% blocktranslate with name=section.category.translated_name %}Newest In {{ name }}{% endblocktranslate %}
+        </h2>
+        <a href="{% url 'shop:product_list_by_category' section.category.slug %}" class="link-arrow shrink-0">{% translate "View All" %} &rsaquo;</a>
+      </div>
+
+      <div class="no-scrollbar mt-7 flex gap-5 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth">
+        {% for product in section.products %}
+        <a href="{% url 'shop:product_detail' product.slug %}" class="snap-start shrink-0 w-60 card bg-canvas p-7 flex flex-col group">
+          <div class="aspect-square w-full flex items-center justify-center">
+            {% if product.image %}
+              <img src="{{ product.image.url }}" alt="{{ product.translated_name }}" style="mix-blend-mode: multiply;" class="h-full w-full object-contain group-hover:scale-105 transition-transform duration-500">
+            {% endif %}
           </div>
-          <a href="{% url 'shop:product_detail' product.slug %}" class="w-full py-2 bg-{{ section.accent }}-600 hover:bg-{{ section.accent }}-500 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-md shadow-{{ section.accent }}-600/20 flex items-center justify-center">
-            <span>{% translate "View Details" %}</span>
-          </a>
-        </div>
-      </article>
-      {% endfor %}
+          <p class="t-caption text-midgray mt-6">{{ product.brand }}</p>
+          <p class="t-body-sm text-ink font-semibold mt-1">{{ product.translated_name }}</p>
+          <p class="t-body-sm text-midgray mt-auto pt-4 figures">{{ product.price }} {% translate "som" %}</p>
+        </a>
+        {% endfor %}
+      </div>
     </div>
-  </section>
-  {% empty %}
-  <section class="text-center text-slate-500 py-10 text-sm">
-    {% translate "No products in stock yet." %}
-  </section>
-  {% endfor %}
+    {% empty %}
+    <p class="t-body text-midgray text-center">{% translate "No products in stock yet." %}</p>
+    {% endfor %}
+  </div>
+</section>
 
-</div>
+<!-- Bring-it-in band, closing the page on the gray canvas. -->
+<section class="band band-gray">
+  <div class="wrap grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+    <div>
+      <p class="t-body-sm text-ember">{% translate "Looking for something else" %}</p>
+      <h2 class="t-heading text-ink mt-3">{% translate "Not in the catalog? We will bring it in" %}</h2>
+    </div>
+    <div>
+      <p class="t-body-sm text-midgray max-w-xl">
+        {% translate "The shelves change every week. Tell us which model you are after and we will order it in or let you know the moment it arrives." %}
+      </p>
+      {% if contact_settings.has_any_channel %}
+      <div class="mt-7">
+        <a href="{% url 'shop:contact_us' %}" class="btn btn-ghost">{% translate "Tell us what you need" %}</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
 
 {% if hero_slides %}
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script>
   new Swiper('.heroSwiper', {
     slidesPerView: 1,
-    // A visible gap while the card slides across, so the move reads as one
-    // card leaving and another arriving.
     spaceBetween: 24,
     loop: {{ hero_slides|length }} > 1,
     speed: 1000,

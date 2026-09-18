@@ -1,13 +1,16 @@
 {% load i18n %}
-<footer class="bg-slate-950 border-t border-slate-800/80 text-slate-500 text-xs py-5 mt-20">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
-        <p>&copy; {% now "Y" %} {{ store_name }}. {% translate "All rights reserved." %}</p>
-        <nav class="flex items-center gap-4">
-            <a href="{% url 'shop:about_us' %}" class="hover:text-indigo-400 transition-colors">{% translate "About Us" %}</a>
-            <a href="{% url 'shop:contact_us' %}" class="hover:text-indigo-400 transition-colors">{% translate "Contact" %}</a>
-            <a href="https://github.com/menshumkarbek-ship-it" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="hover:text-indigo-400 transition-colors">
-                <i class="fa-brands fa-github"></i>
-            </a>
-        </nav>
+{# Footer Legal Block: canvas gray, 12px copy at #707070, links in #0066cc. #}
+<footer class="band-gray">
+    <div class="wrap py-10">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+            <p class="t-micro text-midgray">&copy; {% now "Y" %} {{ store_name }}. {% translate "All rights reserved." %}</p>
+            <nav class="flex items-center gap-5 t-micro">
+                <a href="{% url 'shop:about_us' %}" class="text-linkblue hover:underline">{% translate "About Us" %}</a>
+                <a href="{% url 'shop:contact_us' %}" class="text-linkblue hover:underline">{% translate "Contact" %}</a>
+                <a href="https://github.com/menshumkarbek-ship-it" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="text-midgray hover:text-ink transition-colors">
+                    <i class="fa-brands fa-github"></i>
+                </a>
+            </nav>
+        </div>
     </div>
 </footer>

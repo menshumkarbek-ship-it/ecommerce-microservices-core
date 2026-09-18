@@ -4,19 +4,27 @@
 {% block title %}{{ product.translated_name }} | {% translate "Specifications" %}{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 min-h-[70vh]">
-    <a href="{% url 'shop:product_detail' product.slug %}" class="text-sm font-bold text-indigo-400 hover:text-indigo-300">&larr; {% translate "Back to product" %}</a>
-    <h1 class="mt-5 text-3xl font-black text-white">{{ product.brand }} {{ product.translated_name }}</h1>
-    <div class="mt-6 rounded-2xl border border-slate-800 bg-slate-900/80 p-6">
+<section class="band-tight band-white">
+    <div class="wrap">
+        <a href="{% url 'shop:product_detail' product.slug %}" class="link-arrow t-caption">&lsaquo; {% translate "Back to product" %}</a>
+        <h1 class="t-heading text-ink mt-5">{{ product.brand }} {{ product.translated_name }}</h1>
+    </div>
+</section>
+
+<section class="band band-gray">
+    <div class="wrap">
         {% if product.specifications %}
-            <dl class="divide-y divide-slate-800 text-sm">
-                {% for key, value in product.specifications.items %}
-                    <div class="flex justify-between gap-6 py-3"><dt class="font-bold text-slate-400">{{ key }}</dt><dd class="font-semibold text-slate-100 text-right">{{ value }}</dd></div>
-                {% endfor %}
-            </dl>
+        <dl class="card bg-paper p-8 divide-y divide-hairline max-w-2xl">
+            {% for key, value in product.specifications.items %}
+            <div class="flex items-baseline justify-between gap-6 py-4 first:pt-0 last:pb-0">
+                <dt class="t-body-sm text-midgray capitalize">{{ key }}</dt>
+                <dd class="t-body-sm text-ink text-right figures">{{ value }}</dd>
+            </div>
+            {% endfor %}
+        </dl>
         {% else %}
-            <p class="text-slate-400">{% translate "No technical specifications have been provided for this product." %}</p>
+        <p class="t-body text-midgray">{% translate "No technical specifications have been provided for this product." %}</p>
         {% endif %}
     </div>
-</div>
+</section>
 {% endblock %}

@@ -29,584 +29,208 @@
     <meta property="og:image" content="{{ og_image }}">
     <meta name="twitter:image" content="{{ og_image }}">
     {% endif %}
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // The dark theme is built entirely out of Tailwind's `slate` (blue-grey)
-        // and `indigo` scales. Remapping the two scales here re-skins every
-        // template at once: near-black surfaces instead of navy, with a more
-        // electric blue accent. Class names stay the same, so the light-theme
-        // overrides in the stylesheet below keep working untouched.
+        // Design tokens from DESIGN.md. Names avoid Tailwind's own scale names
+        // (slate, indigo, sky…) so nothing that still relies on the defaults —
+        // the management panel does — is disturbed.
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        slate: {
-                            50: '#f7f8fa', 100: '#eceef3', 200: '#d5d9e2', 300: '#aeb5c4',
-                            400: '#828ba0', 500: '#5f677a', 600: '#434c5e', 700: '#2b3344',
-                            800: '#1c2230', 900: '#11151f', 950: '#05070c',
-                        },
-                        indigo: {
-                            50: '#eef3ff', 100: '#dce6ff', 200: '#bdcdff', 300: '#93abff',
-                            400: '#6b8bff', 500: '#4a6cf7', 600: '#3557e8', 700: '#2942c4',
-                            800: '#22359b', 900: '#1b2a72', 950: '#111a45',
-                        },
+                        ink: '#1d1d1f',
+                        midgray: '#707070',
+                        deepgray: '#474747',
+                        hairline: '#d6d6d6',
+                        canvas: '#f5f5f7',
+                        paper: '#ffffff',
+                        coolwash: '#e8e8ed',
+                        faded: '#fafafc',
+                        quietdot: '#777779',
+                        electric: '#0071e3',
+                        linkblue: '#0066cc',
+                        ember: '#b64400',
+                    },
+                    borderRadius: {
+                        card: '28px',
+                        pill: '980px',
+                    },
+                    maxWidth: {
+                        page: '1200px',
                     },
                 },
             },
         };
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script>
-        if (localStorage.getItem('techvault-theme') === 'light') {
-            document.documentElement.classList.add('theme-light');
-        }
-    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* SF Pro where it exists (Apple devices), Inter as the substitute the
+           reference names, everywhere else. */
         body,
         button,
         input,
         select,
         textarea {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+            font-family: 'SF Pro Display', 'SF Pro Text', -apple-system, BlinkMacSystemFont,
+                         'Inter', ui-sans-serif, system-ui, sans-serif;
         }
 
-        .theme-light body {
-            background-color: #f1f5f9;
-            color: #0f172a;
+        /* DESIGN.md names the "numr" feature, but that is fraction numerators:
+           it raises digits and some letters into superscript. What it describes
+           in prose is tabular figures, so prices and counts get "tnum" — and
+           only those, because tabular widths also stretch the hyphen, which
+           pulls names like "USB-C" apart. */
+        .figures { font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; }
+
+        /* ── Type scale ───────────────────────────────────────────────────
+           Sizes, line heights and tracking come straight from DESIGN.md. The
+           ratios are expressed in em/unitless form so clamp() can shrink the
+           display sizes on phones without breaking the proportions. */
+        .t-display    { font-size: clamp(40px, 8.5vw, 96px); line-height: 1.042; letter-spacing: -0.015em; font-weight: 600; }
+        .t-heading-lg { font-size: clamp(34px, 7vw, 80px);   line-height: 1.05;  letter-spacing: -0.015em; font-weight: 600; }
+        .t-heading    { font-size: clamp(28px, 5vw, 56px);   line-height: 1.071; letter-spacing: -0.005em; font-weight: 600; }
+        .t-heading-sm { font-size: clamp(24px, 3.6vw, 40px); line-height: 1.2;   font-weight: 600; }
+        .t-subheading { font-size: clamp(21px, 2.8vw, 32px); line-height: 1.125; letter-spacing: 0.004em; font-weight: 600; }
+        .t-body-lg    { font-size: clamp(19px, 2.2vw, 28px); line-height: 1.143; letter-spacing: 0.007em; }
+        .t-body       { font-size: clamp(17px, 1.7vw, 21px); line-height: 1.381; letter-spacing: 0.011em; }
+        .t-body-sm    { font-size: 17px; line-height: 1.47;  letter-spacing: -0.022em; }
+        .t-caption    { font-size: 14px; line-height: 1.286; letter-spacing: -0.016em; }
+        .t-micro      { font-size: 12px; line-height: 1.333; letter-spacing: -0.01em; }
+
+        /* ── Bands ────────────────────────────────────────────────────────
+           Sections separate by alternating canvas colour, never by a rule. */
+        .band       { padding: 100px 0; }
+        .band-tight { padding: 56px 0; }
+        .band-white { background-color: #ffffff; }
+        .band-gray  { background-color: #f5f5f7; }
+
+        .wrap { max-width: 1200px; margin: 0 auto; padding: 0 40px; }
+
+        @media (max-width: 767px) {
+            .band       { padding: 56px 0; }
+            .band-tight { padding: 36px 0; }
+            .wrap       { padding: 0 20px; }
         }
 
-        .theme-light [class~="bg-slate-950"],
-        .theme-light [class~="bg-slate-950/60"],
-        .theme-light [class~="bg-slate-950/80"] {
-            background-color: #f8fafc !important;
-        }
-
-        .theme-light [class~="bg-slate-900"],
-        .theme-light [class~="bg-slate-900/80"],
-        .theme-light [class~="bg-slate-900/95"] {
-            background-color: #ffffff !important;
-        }
-
-        .theme-light [class~="bg-slate-800"],
-        .theme-light [class~="bg-slate-800/30"],
-        .theme-light [class~="bg-slate-800/80"] {
-            background-color: #e2e8f0 !important;
-        }
-
-        .theme-light [class~="text-white"],
-        .theme-light [class~="text-slate-100"],
-        .theme-light [class~="text-slate-200"] {
-            color: #0f172a !important;
-        }
-
-        .theme-light [class~="text-slate-300"],
-        .theme-light [class~="text-slate-400"] {
-            color: #475569 !important;
-        }
-
-        .theme-light [class~="text-slate-500"] {
-            color: #64748b !important;
-        }
-
-        .theme-light [class~="border-slate-800"],
-        .theme-light [class~="border-slate-800/80"],
-        .theme-light [class~="border-slate-800/60"],
-        .theme-light [class~="border-slate-700"],
-        .theme-light [class~="border-slate-700/80"] {
-            border-color: #cbd5e1 !important;
-        }
-
-        .theme-light [class~="bg-indigo-950/60"] {
-            background-color: #eef2ff !important;
-        }
-
-        .theme-light [class~="bg-emerald-950/60"] {
-            background-color: #ecfdf5 !important;
-        }
-
-        .theme-light [class~="bg-amber-950/40"] {
-            background-color: #fffbeb !important;
-        }
-
-        .theme-light input,
-        .theme-light select,
-        .theme-light textarea {
-            color: #0f172a !important;
-        }
-
-        .theme-light [class~="placeholder-slate-400"]::placeholder {
-            color: #64748b !important;
-        }
-
-        .theme-light [class~="bg-white"] {
-            background-color: #ffffff !important;
-        }
-
-        /* ---- Light theme: accent colours -------------------------------
-           The dark palette leans on -400 tints for labels and prices; on a
-           white card those wash out, so swap each for its -700 shade. Solid
-           accent buttons keep their white text (the generic text-white rule
-           above would otherwise paint it navy on blue). */
-        .theme-light [class~="bg-indigo-500"][class~="text-white"],
-        .theme-light [class~="bg-indigo-600"][class~="text-white"],
-        .theme-light [class~="bg-cyan-500"][class~="text-white"],
-        .theme-light [class~="bg-cyan-600"][class~="text-white"],
-        .theme-light [class~="bg-emerald-500"][class~="text-white"],
-        .theme-light [class~="bg-emerald-600"][class~="text-white"],
-        .theme-light [class~="bg-purple-500"][class~="text-white"],
-        .theme-light [class~="bg-purple-600"][class~="text-white"],
-        .theme-light [class~="bg-amber-500"][class~="text-white"],
-        .theme-light [class~="bg-amber-600"][class~="text-white"],
-        .theme-light [class~="bg-rose-500"][class~="text-white"],
-        .theme-light [class~="bg-rose-600"][class~="text-white"],
-        .theme-light [class~="bg-sky-500"][class~="text-white"],
-        .theme-light [class~="bg-sky-600"][class~="text-white"],
-        .theme-light [class~="bg-teal-500"][class~="text-white"],
-        .theme-light [class~="bg-teal-600"][class~="text-white"],
-        .theme-light [class~="bg-red-500"][class~="text-white"],
-        .theme-light [class~="bg-red-600"][class~="text-white"] {
-            color: #ffffff !important;
-        }
-
-        .theme-light [class~="text-indigo-300"],
-        .theme-light [class~="text-indigo-400"] {
-            color: #2942c4 !important;
-        }
-
-        .theme-light [class~="text-cyan-300"],
-        .theme-light [class~="text-cyan-400"] {
-            color: #0e7490 !important;
-        }
-
-        .theme-light [class~="text-emerald-300"],
-        .theme-light [class~="text-emerald-400"] {
-            color: #047857 !important;
-        }
-
-        .theme-light [class~="text-purple-300"],
-        .theme-light [class~="text-purple-400"] {
-            color: #7e22ce !important;
-        }
-
-        .theme-light [class~="text-amber-300"],
-        .theme-light [class~="text-amber-400"] {
-            color: #b45309 !important;
-        }
-
-        .theme-light [class~="text-rose-300"],
-        .theme-light [class~="text-rose-400"] {
-            color: #be123c !important;
-        }
-
-        .theme-light [class~="text-sky-300"],
-        .theme-light [class~="text-sky-400"] {
-            color: #0369a1 !important;
-        }
-
-        .theme-light [class~="text-teal-300"],
-        .theme-light [class~="text-teal-400"] {
-            color: #0f766e !important;
-        }
-
-        .theme-light [class~="text-red-300"],
-        .theme-light [class~="text-red-400"] {
-            color: #b91c1c !important;
-        }
-
-        .theme-light [class~="bg-indigo-950/80"],
-        .theme-light [class~="bg-indigo-950/40"] {
-            background-color: #eef2ff !important;
-        }
-
-        .theme-light [class~="border-indigo-800/80"],
-        .theme-light [class~="border-indigo-800/60"] {
-            border-color: #c7d2fe !important;
-        }
-
-        .theme-light [class~="bg-emerald-950/80"] {
-            background-color: #d1fae5 !important;
-        }
-
-        .theme-light [class~="border-emerald-800/80"] {
-            border-color: #6ee7b7 !important;
-        }
-
-        .theme-light [class~="bg-amber-950/60"] {
-            background-color: #fef3c7 !important;
-        }
-
-        .theme-light [class~="border-amber-800/80"] {
-            border-color: #fcd34d !important;
-        }
-
-        /* Hero headline gradient: pastel on black, saturated on white. */
-        .theme-light .heroSwiper [class~="bg-clip-text"] {
-            background-image: linear-gradient(to right, #3557e8, #0284c7, #7c3aed) !important;
-        }
-
-        /* Swiper's default bullets are black at 20% — invisible on the dark
-           hero. Give them an explicit colour in both themes. */
-        .heroSwiper .swiper-pagination-bullet {
-            background-color: #ffffff;
-            opacity: .35;
-        }
-        .heroSwiper .swiper-pagination-bullet-active {
-            background-color: #4a6cf7;
-            opacity: 1;
-        }
-        .theme-light .heroSwiper .swiper-pagination-bullet {
-            background-color: #5f677a;
-        }
-        .theme-light .heroSwiper .swiper-pagination-bullet-active {
-            background-color: #3557e8;
-        }
-
-        /* The About-page CTA banner stays dark in both themes; keep its
-           copy light so it doesn't vanish into the gradient. */
-        .theme-light .cta-banner,
-        .theme-light .cta-banner [class~="text-white"] {
-            color: #ffffff !important;
-        }
-        .theme-light .cta-banner [class~="text-slate-300"] {
-            color: #cbd5e1 !important;
-        }
-
-        /* Compact theme switch, sized to sit level with the language select
-           next to it. Both icons live inside the track; the knob slides over
-           the one for the theme that's currently on, leaving the other dimmed
-           as the thing a click switches to. */
-        .theme-toggle {
-            position: relative;
-            flex: none;
-            width: 3.1rem;
-            height: 1.75rem;
-            padding: 0;
-            border-radius: 9999px;
-            background-color: #1c2230;
-            border: 1px solid #2b3344;
-            transition: background-color .28s ease, border-color .28s ease;
-        }
-
-        .theme-light .theme-toggle {
-            background-color: #cbd5e1;
-            border-color: #cbd5e1;
-        }
-
-        .theme-toggle-dim {
-            position: absolute;
-            top: 50%;
-            margin-top: -0.4rem;
-            line-height: .8rem;
-            font-size: .6rem;
-            color: #5f677a;
-        }
-
-        .theme-light .theme-toggle-dim {
-            color: #ffffff;
-        }
-
-        .theme-toggle-dim-sun {
-            left: .42rem;
-        }
-
-        .theme-toggle-dim-moon {
-            right: .42rem;
-        }
-
-        .theme-toggle-knob {
-            position: absolute;
-            top: 50%;
-            left: calc(100% - 1.55rem);
-            width: 1.35rem;
-            height: 1.35rem;
-            margin-top: -0.675rem;
-            border-radius: 9999px;
+        /* ── Buttons ──────────────────────────────────────────────────────
+           Pills only. Electric blue is the single chromatic fill in the UI. */
+        .btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: .6rem;
-            color: #ffffff;
-            background-color: #4a6cf7;
-            transition: left .28s cubic-bezier(.4, 0, .2, 1);
+            gap: 8px;
+            font-size: 17px;
+            font-weight: 400;
+            line-height: 1.47;
+            letter-spacing: -0.022em;
+            padding: 11px 22px;
+            border-radius: 980px;
+            transition: background-color .2s, color .2s, border-color .2s;
+            white-space: nowrap;
+        }
+        .btn-blue       { background-color: #0071e3; color: #ffffff; }
+        .btn-blue:hover { background-color: #0077ed; }
+        .btn-ghost      { border: 1px solid #1d1d1f; color: #1d1d1f; background-color: transparent; }
+        .btn-ghost:hover{ background-color: #1d1d1f; color: #ffffff; }
+        .btn-sm         { font-size: 14px; padding: 8px 16px; }
+
+        .link-arrow        { color: #0066cc; font-size: 17px; letter-spacing: -0.022em; }
+        .link-arrow:hover  { text-decoration: underline; }
+
+        /* Cards carry radius and colour, never a shadow or a stroke. */
+        .card { border-radius: 28px; background-color: #ffffff; }
+
+        .hairline-link {
+            color: #1d1d1f;
+            border-bottom: 1px solid currentColor;
+            padding-bottom: 1px;
         }
 
-        .theme-light .theme-toggle-knob {
-            left: .2rem;
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* ── Global nav ───────────────────────────────────────────────────
+           44px bar, 12px links, frosted #fafafc once the page moves. */
+        .globalnav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background-color: rgba(255, 255, 255, .82);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            transition: background-color .3s;
         }
+        .globalnav.is-scrolled { background-color: rgba(250, 250, 252, .94); }
+        .globalnav-inner { height: 44px; }
+        .globalnav a, .globalnav button, .globalnav select { font-size: 12px; letter-spacing: -0.01em; }
 
-        /* Dark is the default: knob shows the moon, the sun stays dimmed on
-           the left. The light theme mirrors both. */
-        .theme-light .theme-toggle-dim-sun,
-        .theme-light .theme-toggle-knob-moon,
-        .theme-toggle-dim-moon,
-        .theme-toggle-knob-sun {
-            display: none;
-        }
-
-        .theme-light .theme-toggle-dim-moon,
-        .theme-light .theme-toggle-knob-sun {
-            display: inline-block;
-        }
-
-        @media (min-width: 640px) {
-            .theme-toggle {
-                width: 3.6rem;
-                height: 2.1rem;
-            }
-
-            .theme-toggle-knob {
-                left: calc(100% - 1.85rem);
-                width: 1.65rem;
-                height: 1.65rem;
-                margin-top: -0.825rem;
-                font-size: .7rem;
-            }
-
-            .theme-light .theme-toggle-knob {
-                left: .225rem;
-            }
-
-            .theme-toggle-dim {
-                font-size: .68rem;
-                margin-top: -0.45rem;
-                line-height: .9rem;
-            }
-
-            .theme-toggle-dim-sun {
-                left: .55rem;
-            }
-
-            .theme-toggle-dim-moon {
-                right: .55rem;
-            }
-        }
-
-        .product-management .bg-white {
-            background-color: #11151f !important;
-        }
-
-        .product-management .bg-gray-50,
-        .product-management .bg-gray-50\/50,
-        .product-management .bg-gray-50\/70,
-        .product-management .bg-gray-100 {
-            background-color: #1c2230 !important;
-        }
-
-        .product-management .text-gray-950,
-        .product-management .text-gray-900 {
-            color: #f8fafc !important;
-        }
-
-        .product-management .text-gray-800,
-        .product-management .text-gray-700 {
-            color: #d5d9e2 !important;
-        }
-
-        .product-management .text-gray-600,
-        .product-management .text-gray-500,
-        .product-management .text-gray-400 {
-            color: #828ba0 !important;
-        }
-
-        .product-management .border-gray-200\/80,
-        .product-management .border-gray-100,
-        .product-management .border-gray-50,
-        .product-management .border-gray-100\/50 {
-            border-color: #2b3344 !important;
-        }
-
-        .theme-light .product-management .bg-white {
-            background-color: #ffffff !important;
-        }
-
-        .theme-light .product-management .bg-gray-50,
-        .theme-light .product-management .bg-gray-50\/50,
-        .theme-light .product-management .bg-gray-50\/70 {
-            background-color: #f8fafc !important;
-        }
-
-        .theme-light .product-management .bg-gray-100 {
-            background-color: #eceef3 !important;
-        }
-
-        .theme-light .product-management .text-gray-950,
-        .theme-light .product-management .text-gray-900 {
-            color: #0f172a !important;
-        }
-
-        .theme-light .product-management .text-gray-800,
-        .theme-light .product-management .text-gray-700 {
-            color: #1e293b !important;
-        }
-
-        .theme-light .product-management .text-gray-600 {
-            color: #475569 !important;
-        }
-
-        .theme-light .product-management .text-gray-500,
-        .theme-light .product-management .text-gray-400 {
-            color: #64748b !important;
-        }
-
-        .theme-light .product-management .border-gray-200\/80,
-        .theme-light .product-management .border-gray-100,
-        .theme-light .product-management .border-gray-50,
-        .theme-light .product-management .border-gray-100\/50 {
-            border-color: #e2e8f0 !important;
-        }
-
-        .theme-light .product-management input,
-        .theme-light .product-management select,
-        .theme-light .product-management textarea {
-            background-color: #f8fafc !important;
-            border-color: #cbd5e1 !important;
-            color: #0f172a !important;
-        }
+        /* The management panel keeps its own look; it only needs the body
+           font reset above, not the storefront's type scale. */
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 antialiased min-h-screen flex flex-col justify-between selection:bg-indigo-600/30 selection:text-indigo-400 m-0 p-0">
+<body class="bg-paper text-ink antialiased min-h-screen flex flex-col selection:bg-electric/20 m-0 p-0">
 
-    <nav class="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-xl border-b border-slate-800/80 w-full">
-        <div class="w-full px-4 sm:px-6">
-            <div class="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-4">
+    <nav class="globalnav w-full" id="globalnav">
+        <div class="wrap">
+            <div class="globalnav-inner flex items-center justify-between gap-4">
 
-                <div class="flex items-center min-w-0">
-                    <a href="{% url 'shop:home' %}" class="text-lg sm:text-2xl font-black tracking-tight text-white hover:opacity-90 transition-opacity flex items-center gap-1.5 sm:gap-2 min-w-0">
-                        <span class="truncate min-w-0">{{ store_name }}</span><span class="text-indigo-500 shrink-0">.</span>
+                <a href="{% url 'shop:home' %}" class="font-semibold text-ink hover:opacity-70 transition-opacity truncate min-w-0" style="font-size:14px;">
+                    {{ store_name }}
+                </a>
+
+                <div class="hidden lg:flex items-center gap-6">
+                    <a href="{% url 'shop:home' %}" class="{% if request.resolver_match.url_name == 'home' %}text-ink{% else %}text-deepgray hover:text-ink{% endif %} transition-colors">
+                        {% translate "Home" %}
+                    </a>
+                    <a href="{% url 'shop:product_list' %}" class="{% if request.resolver_match.url_name == 'product_list' or request.resolver_match.url_name == 'product_list_by_category' %}text-ink{% else %}text-deepgray hover:text-ink{% endif %} transition-colors">
+                        {% translate "Catalog" %}
+                    </a>
+                    <a href="{% url 'shop:about_us' %}" class="{% if request.resolver_match.url_name == 'about_us' %}text-ink{% else %}text-deepgray hover:text-ink{% endif %} transition-colors">
+                        {% translate "About Us" %}
+                    </a>
+                    <a href="{% url 'shop:contact_us' %}" class="{% if request.resolver_match.url_name == 'contact_us' %}text-ink{% else %}text-deepgray hover:text-ink{% endif %} transition-colors">
+                        {% translate "Contact" %}
                     </a>
                 </div>
 
-                <div class="flex-grow hidden md:block">
-                    {% if request.resolver_match.url_name == 'product_list' or request.resolver_match.url_name == 'product_list_by_category' %}
-                    <form action="{% url 'shop:product_list' %}" method="GET" class="relative max-w-lg mx-auto">
-                        {% if selected_brand %}
-                            <input type="hidden" name="brand" value="{{ selected_brand }}">
-                        {% endif %}
-                        <div class="relative flex items-center">
-                            <span class="absolute left-4 text-slate-500">
-                                <i class="fa-solid fa-magnifying-glass text-xs"></i>
-                            </span>
-                            <input
-                                type="text"
-                                name="search"
-                                placeholder="{% translate 'Search premium electronics...' %}"
-                                value="{{ request.GET.search|default:'' }}"
-                                class="w-full bg-slate-800/80 border border-slate-700/80 rounded-2xl pl-11 pr-4 py-2.5 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:bg-slate-800 transition-all"
-                            >
-                        </div>
-                    </form>
-                    {% endif %}
-                </div>
-
-                <div class="flex items-center space-x-1.5 sm:space-x-4 lg:space-x-6 flex-shrink-0">
-
-                    <div class="hidden lg:flex items-center space-x-6 font-semibold text-sm mr-2">
-                        <a href="{% url 'shop:home' %}"
-                           class="transition-colors {% if request.resolver_match.url_name == 'home' %}text-indigo-400 font-bold border-b-2 border-indigo-500 pb-0.5{% else %}text-slate-400 hover:text-white{% endif %}">
-                            {% translate "Home" %}
-                        </a>
-                        <a href="{% url 'shop:product_list' %}"
-                           class="transition-colors {% if request.resolver_match.url_name == 'product_list' or request.resolver_match.url_name == 'product_list_by_category' %}text-indigo-400 font-bold border-b-2 border-indigo-500 pb-0.5{% else %}text-slate-400 hover:text-white{% endif %}">
-                            {% translate "Catalog" %}
-                        </a>
-                        <a href="{% url 'shop:about_us' %}"
-                           class="transition-colors {% if request.resolver_match.url_name == 'about_us' %}text-indigo-400 font-bold border-b-2 border-indigo-500 pb-0.5{% else %}text-slate-400 hover:text-white{% endif %}">
-                            {% translate "About Us" %}
-                        </a>
-                        <a href="{% url 'shop:contact_us' %}"
-                           class="transition-colors {% if request.resolver_match.url_name == 'contact_us' %}text-indigo-400 font-bold border-b-2 border-indigo-500 pb-0.5{% else %}text-slate-400 hover:text-white{% endif %}">
-                            {% translate "Contact" %}
-                        </a>
-                    </div>
-
-                    <form action="{% url 'set_language' %}" method="post" id="language-switcher-form" class="inline-block">
+                <div class="flex items-center gap-3 shrink-0">
+                    <form action="{% url 'set_language' %}" method="post" id="language-switcher-form">
                         {% csrf_token %}
                         <input name="next" type="hidden" value="{{ request.get_full_path }}">
-                        <select name="language" onchange="this.form.submit()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] sm:text-xs font-extrabold px-1.5 py-1.5 sm:px-3 sm:py-2 rounded-xl border border-slate-700/80 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer max-w-[4.5rem] sm:max-w-none">
+                        <select name="language" onchange="this.form.submit()" class="bg-transparent text-deepgray hover:text-ink focus:outline-none cursor-pointer">
                             {% get_current_language as CURRENT_LANG %}
                             {% get_available_languages as AVAILABLE_LANGS %}
                             {% for lang_code, lang_name in AVAILABLE_LANGS %}
-                                <option value="{{ lang_code }}" {% if lang_code == CURRENT_LANG %}selected{% endif %} class="bg-slate-900 text-slate-200">
-                                    {{ lang_name }}
-                                </option>
+                                <option value="{{ lang_code }}" {% if lang_code == CURRENT_LANG %}selected{% endif %}>{{ lang_name }}</option>
                             {% endfor %}
                         </select>
                     </form>
 
-                    <button type="button" id="theme-toggle" class="theme-toggle focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-950" aria-label="{% translate 'Toggle color theme' %}" title="{% translate 'Toggle color theme' %}">
-                        <i class="fa-solid fa-sun theme-toggle-dim theme-toggle-dim-sun"></i>
-                        <i class="fa-solid fa-moon theme-toggle-dim theme-toggle-dim-moon"></i>
-                        <span class="theme-toggle-knob">
-                            <i class="fa-solid fa-moon theme-toggle-knob-moon"></i>
-                            <i class="fa-solid fa-sun theme-toggle-knob-sun"></i>
-                        </span>
-                    </button>
-
-                    <!-- 🛡️ STAFF-ONLY SETTINGS LINK (this is a view-only storefront: no cart, checkout, or customer accounts) -->
-                    <!-- Products/Categories/Contacts/About/Sales Report and Sign Out all live as tabs -->
-                    <!-- inside this one hub (shop:create_product), keeping the navbar to a single button. -->
                     {% if request.user.is_authenticated and is_admin_user %}
-                        <a href="{% url 'shop:create_product' %}" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-indigo-950/80 border border-indigo-800/80 hover:border-indigo-500 text-indigo-400 rounded-xl text-xs font-bold transition-all shadow-md">
+                        <a href="{% url 'shop:create_product' %}" class="hidden sm:inline-flex items-center gap-1.5 text-deepgray hover:text-ink transition-colors" title="{% translate 'Settings' %}">
                             <i class="fa-solid fa-gear"></i>
                             <span>{% translate "Settings" %}</span>
                         </a>
                     {% endif %}
 
-                    <!-- Mobile menu toggle: reveals Home/Catalog/About/Contact (and, for -->
-                    <!-- staff, the management links) below the navbar on phones/tablets, -->
-                    <!-- where the links above are hidden until the "lg" breakpoint. -->
-                    <button type="button" id="mobile-menu-toggle" class="lg:hidden inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-700/80 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500" aria-label="{% translate 'Toggle menu' %}" aria-expanded="false" aria-controls="mobile-menu">
+                    <button type="button" id="mobile-menu-toggle" class="lg:hidden text-deepgray hover:text-ink transition-colors" aria-label="{% translate 'Toggle menu' %}" aria-expanded="false" aria-controls="mobile-menu">
                         <i class="fa-solid fa-bars mobile-menu-icon-open"></i>
                         <i class="fa-solid fa-xmark mobile-menu-icon-close hidden"></i>
                     </button>
-
                 </div>
             </div>
 
-            <!-- Catalog search, own full-width row below md (avoids squeezing -->
-            <!-- into the top bar next to the logo/controls on phones/tablets) -->
-            {% if request.resolver_match.url_name == 'product_list' or request.resolver_match.url_name == 'product_list_by_category' %}
-            <div class="md:hidden pb-4">
-                <form action="{% url 'shop:product_list' %}" method="GET" class="relative">
-                    {% if selected_brand %}
-                        <input type="hidden" name="brand" value="{{ selected_brand }}">
-                    {% endif %}
-                    <div class="relative flex items-center">
-                        <span class="absolute left-4 text-slate-500">
-                            <i class="fa-solid fa-magnifying-glass text-xs"></i>
-                        </span>
-                        <input
-                            type="text"
-                            name="search"
-                            placeholder="{% translate 'Search premium electronics...' %}"
-                            value="{{ request.GET.search|default:'' }}"
-                            class="w-full bg-slate-800/80 border border-slate-700/80 rounded-2xl pl-11 pr-4 py-2.5 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:bg-slate-800 transition-all"
-                        >
-                    </div>
-                </form>
-            </div>
-            {% endif %}
-
-            <!-- Mobile Menu Panel -->
-            <div id="mobile-menu" class="hidden lg:hidden pb-4 space-y-1 font-semibold text-sm">
-                <a href="{% url 'shop:home' %}" class="block px-3 py-2.5 rounded-xl {% if request.resolver_match.url_name == 'home' %}bg-indigo-950/60 text-indigo-400{% else %}text-slate-300 hover:bg-slate-800/60{% endif %}">
-                    {% translate "Home" %}
-                </a>
-                <a href="{% url 'shop:product_list' %}" class="block px-3 py-2.5 rounded-xl {% if request.resolver_match.url_name == 'product_list' or request.resolver_match.url_name == 'product_list_by_category' %}bg-indigo-950/60 text-indigo-400{% else %}text-slate-300 hover:bg-slate-800/60{% endif %}">
-                    {% translate "Catalog" %}
-                </a>
-                <a href="{% url 'shop:about_us' %}" class="block px-3 py-2.5 rounded-xl {% if request.resolver_match.url_name == 'about_us' %}bg-indigo-950/60 text-indigo-400{% else %}text-slate-300 hover:bg-slate-800/60{% endif %}">
-                    {% translate "About Us" %}
-                </a>
-                <a href="{% url 'shop:contact_us' %}" class="block px-3 py-2.5 rounded-xl {% if request.resolver_match.url_name == 'contact_us' %}bg-indigo-950/60 text-indigo-400{% else %}text-slate-300 hover:bg-slate-800/60{% endif %}">
-                    {% translate "Contact" %}
-                </a>
+            <div id="mobile-menu" class="hidden lg:hidden pb-5 pt-1 space-y-1">
+                <a href="{% url 'shop:home' %}" class="block py-2 t-body-sm {% if request.resolver_match.url_name == 'home' %}text-ink{% else %}text-midgray{% endif %}">{% translate "Home" %}</a>
+                <a href="{% url 'shop:product_list' %}" class="block py-2 t-body-sm {% if request.resolver_match.url_name == 'product_list' or request.resolver_match.url_name == 'product_list_by_category' %}text-ink{% else %}text-midgray{% endif %}">{% translate "Catalog" %}</a>
+                <a href="{% url 'shop:about_us' %}" class="block py-2 t-body-sm {% if request.resolver_match.url_name == 'about_us' %}text-ink{% else %}text-midgray{% endif %}">{% translate "About Us" %}</a>
+                <a href="{% url 'shop:contact_us' %}" class="block py-2 t-body-sm {% if request.resolver_match.url_name == 'contact_us' %}text-ink{% else %}text-midgray{% endif %}">{% translate "Contact" %}</a>
                 {% if request.user.is_authenticated and is_admin_user %}
-                <div class="pt-2 mt-2 border-t border-slate-800/80">
-                    <a href="{% url 'shop:create_product' %}" class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-indigo-400 bg-indigo-950/40 hover:bg-indigo-950/60">
-                        <i class="fa-solid fa-gear text-xs"></i> {% translate "Settings" %}
-                    </a>
-                </div>
+                    <a href="{% url 'shop:create_product' %}" class="block py-2 t-body-sm text-midgray">{% translate "Settings" %}</a>
                 {% endif %}
             </div>
         </div>
@@ -614,11 +238,10 @@
 
     <main class="flex-grow w-full m-0 p-0">
         {% if messages %}
-            <div class="px-4 sm:px-6 mt-6 space-y-2">
+            <div class="wrap pt-6 space-y-2">
                 {% for message in messages %}
-                    <div class="p-4 text-sm font-semibold rounded-xl border {% if message.tags == 'success' %}bg-emerald-950/60 text-emerald-400 border-emerald-800/80{% else %}bg-amber-950/60 text-amber-400 border-amber-800/80{% endif %} shadow-sm flex items-center gap-2">
-                        <i class="fa-solid {% if message.tags == 'success' %}fa-circle-check{% else %}fa-triangle-exclamation{% endif %}"></i>
-                        <span>{{ message }}</span>
+                    <div class="t-body-sm rounded-card px-6 py-4 {% if message.tags == 'success' %}bg-canvas text-ink{% else %}bg-canvas text-ember{% endif %}">
+                        {{ message }}
                     </div>
                 {% endfor %}
             </div>
@@ -633,12 +256,13 @@
     {% block extra_js %}{% endblock %}
 
     <script>
-        const themeToggle = document.getElementById('theme-toggle');
-        if (themeToggle) {
-            themeToggle.addEventListener('click', () => {
-                const isLight = document.documentElement.classList.toggle('theme-light');
-                localStorage.setItem('techvault-theme', isLight ? 'light' : 'dark');
-            });
+        const globalnav = document.getElementById('globalnav');
+        if (globalnav) {
+            const onScroll = function () {
+                globalnav.classList.toggle('is-scrolled', window.scrollY > 4);
+            };
+            onScroll();
+            window.addEventListener('scroll', onScroll, { passive: true });
         }
 
         const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
@@ -651,6 +275,17 @@
                 mobileMenuToggle.querySelector('.mobile-menu-icon-close').classList.toggle('hidden', !isOpen);
             });
         }
+
+        // Deletes that cannot be undone ask once before submitting. The warning
+        // rides on the form as data-confirm-delete so the text can be built (and
+        // escaped) by the template rather than quoted into an inline handler.
+        document.querySelectorAll('form[data-confirm-delete]').forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!window.confirm(form.dataset.confirmDelete)) {
+                    event.preventDefault();
+                }
+            });
+        });
 
         // Per-language field tabs (EN/RU/KY): shared by every management form
         // that lets an admin enter translated content field-by-field. Each
